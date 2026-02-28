@@ -1,0 +1,2369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logic Quest — Phil 2170B Exam Prep</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #080b14;
+  --surface: #0d1220;
+  --card: #111827;
+  --border: #1e2d45;
+  --accent: #00d4ff;
+  --gold: #ffd166;
+  --green: #06d6a0;
+  --red: #ef4444;
+  --purple: #a855f7;
+  --text: #e2e8f0;
+  --muted: #64748b;
+  --mono: 'JetBrains Mono', monospace;
+  --display: 'Syne', sans-serif;
+  --body: 'Lora', serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;overflow-x:hidden;}
+
+/* ── STARFIELD ── */
+#stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+.star{position:absolute;background:#fff;border-radius:50%;animation:twinkle var(--d) infinite;}
+@keyframes twinkle{0%,100%{opacity:0.2;}50%{opacity:1;}}
+
+/* ── SCREEN SYSTEM ── */
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;}
+
+/* ══════════════════════════════
+   HOME SCREEN
+══════════════════════════════ */
+#home{align-items:center;justify-content:center;text-align:center;padding:40px 24px;}
+.home-badge{font-family:var(--mono);font-size:11px;letter-spacing:4px;color:var(--accent);background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:6px 18px;border-radius:99px;margin-bottom:32px;display:inline-block;}
+#home h1{font-family:var(--display);font-size:clamp(48px,10vw,100px);font-weight:800;line-height:0.95;margin-bottom:24px;}
+#home h1 span.line1{display:block;color:#fff;}
+#home h1 span.line2{display:block;background:linear-gradient(90deg,var(--accent),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.home-sub{font-size:16px;color:var(--muted);margin-bottom:48px;max-width:480px;line-height:1.7;}
+
+.world-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;max-width:900px;width:100%;margin-bottom:40px;}
+.world-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;cursor:pointer;transition:all 0.25s;text-align:left;position:relative;overflow:hidden;}
+.world-card::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 50%,rgba(255,255,255,0.02));pointer-events:none;}
+.world-card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 0 32px rgba(0,212,255,0.15);}
+.world-card.locked{opacity:0.45;cursor:not-allowed;}
+.world-card.locked:hover{transform:none;border-color:var(--border);box-shadow:none;}
+.world-num{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:8px;letter-spacing:2px;}
+.world-title{font-family:var(--display);font-size:18px;font-weight:700;margin-bottom:6px;}
+.world-desc{font-size:12px;color:var(--muted);line-height:1.5;}
+.world-status{font-family:var(--mono);font-size:10px;margin-top:12px;padding:4px 10px;border-radius:99px;display:inline-block;}
+.status-play{background:rgba(0,212,255,0.1);color:var(--accent);}
+.status-locked{background:rgba(100,116,139,0.1);color:var(--muted);}
+.status-done{background:rgba(6,214,160,0.1);color:var(--green);}
+.world-icon{font-size:32px;margin-bottom:12px;}
+
+.score-bar{display:flex;align-items:center;gap:24px;font-family:var(--mono);font-size:13px;color:var(--muted);}
+.score-item{display:flex;align-items:center;gap:8px;}
+.score-val{color:var(--gold);font-weight:600;font-size:16px;}
+
+/* ══════════════════════════════
+   GAME HEADER
+══════════════════════════════ */
+.game-header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border);background:rgba(8,11,20,0.9);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100;}
+.gh-left{display:flex;align-items:center;gap:16px;}
+.back-btn{font-family:var(--mono);font-size:12px;color:var(--muted);cursor:pointer;padding:6px 14px;border:1px solid var(--border);border-radius:8px;background:transparent;transition:all 0.2s;}
+.back-btn:hover{color:var(--text);border-color:var(--muted);}
+.gh-title{font-family:var(--display);font-weight:700;font-size:16px;}
+.gh-right{display:flex;align-items:center;gap:20px;font-family:var(--mono);font-size:13px;}
+.xp-badge{background:rgba(255,209,102,0.1);color:var(--gold);padding:4px 12px;border-radius:99px;border:1px solid rgba(255,209,102,0.2);}
+.lives{color:var(--red);}
+
+/* ══════════════════════════════
+   QUESTION AREA
+══════════════════════════════ */
+.question-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;max-width:800px;margin:0 auto;width:100%;}
+.q-progress{width:100%;margin-bottom:32px;}
+.progress-track{height:4px;background:var(--border);border-radius:99px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--purple));border-radius:99px;transition:width 0.4s ease;}
+.q-meta{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:8px;}
+
+.q-card{background:#13192b;border:1px solid #2e4060;border-radius:20px;padding:36px;width:100%;margin-bottom:24px;}
+.q-type-tag{font-family:var(--mono);font-size:10px;letter-spacing:3px;color:var(--accent);margin-bottom:16px;display:block;}
+.q-text{font-size:17px;line-height:1.7;margin-bottom:8px;color:#f0f4ff;}
+.q-formula{font-family:var(--mono);font-size:20px;font-weight:600;color:#fff;background:#080b14;padding:16px 20px;border-radius:10px;margin:16px 0;border-left:3px solid var(--accent);}
+.q-hint{font-size:13px;color:#a0c4ff;font-style:italic;margin-top:8px;}
+
+/* Options */
+.options{display:grid;gap:12px;width:100%;}
+.opt{background:#1a2235;border:1px solid #2e4060;border-radius:12px;padding:16px 20px;cursor:pointer;transition:all 0.2s;font-size:15px;text-align:left;display:flex;align-items:center;gap:14px;font-family:var(--body);color:#f0f4ff;}
+.opt-letter{font-family:var(--mono);font-size:12px;font-weight:700;width:28px;height:28px;border-radius:6px;background:#2e4060;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#a0c4ff;}
+.opt:hover{border-color:var(--accent);background:#1e2e48;color:#fff;}
+.opt:hover .opt-letter{background:var(--accent);color:#000;}
+.opt.correct{border-color:var(--green);background:rgba(6,214,160,0.15);color:#fff;}
+.opt.correct .opt-letter{background:var(--green);color:#000;}
+.opt.wrong{border-color:var(--red);background:rgba(239,68,68,0.15);color:#fff;}
+.opt.wrong .opt-letter{background:var(--red);color:#fff;}
+.opt.reveal{border-color:var(--green);background:rgba(6,214,160,0.12);color:#cceee5;opacity:0.85;}
+.opt.disabled{pointer-events:none;}
+
+/* Fill in blank */
+.fill-input{width:100%;background:var(--surface);border:2px solid var(--border);border-radius:12px;padding:16px 20px;font-family:var(--mono);font-size:18px;color:#fff;outline:none;transition:border-color 0.2s;}
+.fill-input:focus{border-color:var(--accent);}
+.fill-input.correct{border-color:var(--green);}
+.fill-input.wrong{border-color:var(--red);}
+
+/* Truth table builder */
+.tt-builder{background:#080b14;border-radius:12px;padding:20px;overflow-x:auto;margin:16px 0;}
+.tt-table{border-collapse:collapse;font-family:var(--mono);font-size:14px;}
+.tt-table th{padding:10px 16px;color:var(--accent);border-bottom:2px solid var(--border);font-weight:600;}
+.tt-table td{padding:8px 16px;border:1px solid var(--border);text-align:center;}
+.tt-table tr:nth-child(even) td{background:rgba(255,255,255,0.02);}
+.tt-cell-input{background:transparent;border:1px solid var(--border);border-radius:4px;padding:4px 8px;font-family:var(--mono);color:#fff;width:50px;text-align:center;outline:none;}
+.tt-cell-input:focus{border-color:var(--accent);}
+.tt-cell-given{color:var(--muted);}
+
+/* Feedback */
+.feedback{border-radius:14px;padding:20px 24px;margin-bottom:16px;display:none;}
+.feedback.show{display:block;animation:slideUp 0.3s ease;}
+.feedback.correct-fb{background:rgba(6,214,160,0.1);border:1px solid rgba(6,214,160,0.3);}
+.feedback.wrong-fb{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);}
+.fb-title{font-family:var(--display);font-weight:700;font-size:18px;margin-bottom:8px;}
+.fb-correct .fb-title{color:var(--green);}
+.fb-wrong .fb-title{color:var(--red);}
+.fb-explain{font-size:14px;color:var(--muted);line-height:1.7;}
+.fb-explain strong{color:var(--text);}
+.fb-formula{font-family:var(--mono);font-size:13px;background:rgba(0,0,0,0.3);padding:10px 14px;border-radius:8px;margin-top:8px;color:var(--gold);}
+
+@keyframes slideUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+/* Next btn */
+.next-btn{background:linear-gradient(135deg,var(--accent),var(--purple));color:#000;font-family:var(--display);font-weight:700;font-size:16px;padding:14px 36px;border-radius:12px;border:none;cursor:pointer;display:none;transition:transform 0.2s,box-shadow 0.2s;}
+.next-btn:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,212,255,0.3);}
+.next-btn.show{display:inline-block;}
+
+/* ══════════════════════════════
+   RESULTS SCREEN
+══════════════════════════════ */
+#results{align-items:center;justify-content:center;text-align:center;padding:40px 24px;}
+.result-circle{width:160px;height:160px;border-radius:50%;background:conic-gradient(var(--accent) 0% var(--pct, 75%),var(--border) var(--pct, 75%) 100%);display:flex;align-items:center;justify-content:center;margin:0 auto 32px;position:relative;}
+.result-inner{width:130px;height:130px;background:var(--bg);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.result-score{font-family:var(--display);font-size:40px;font-weight:800;color:#fff;}
+.result-label{font-family:var(--mono);font-size:10px;color:var(--muted);}
+.result-title{font-family:var(--display);font-size:36px;font-weight:800;margin-bottom:12px;}
+.result-msg{color:var(--muted);font-size:15px;margin-bottom:32px;max-width:400px;line-height:1.7;}
+.result-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--purple));color:#000;font-family:var(--display);font-weight:700;padding:12px 28px;border-radius:10px;border:none;cursor:pointer;font-size:15px;}
+.btn-secondary{background:transparent;color:var(--text);font-family:var(--display);font-weight:700;padding:12px 28px;border-radius:10px;border:1px solid var(--border);cursor:pointer;font-size:15px;}
+.btn-secondary:hover{border-color:var(--muted);}
+
+/* ══════════════════════════════
+   LEARN SCREEN
+══════════════════════════════ */
+#learn{padding:0;}
+.learn-content{max-width:700px;margin:0 auto;padding:40px 24px;}
+.learn-section{margin-bottom:40px;}
+.learn-section h2{font-family:var(--display);font-size:26px;font-weight:800;margin-bottom:16px;color:#fff;}
+.learn-section p{color:var(--muted);line-height:1.8;margin-bottom:12px;font-size:15px;}
+.learn-section p strong{color:var(--text);}
+.rule-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin:12px 0;}
+.rule-box .rf{font-family:var(--mono);font-size:18px;font-weight:700;color:#fff;margin-bottom:8px;}
+.rule-box .rd{font-size:13px;color:var(--muted);line-height:1.6;}
+.rule-box .arrow{display:flex;align-items:center;gap:16px;margin:10px 0;font-family:var(--mono);font-size:15px;}
+.rule-box .arrow .from{color:var(--gold);}
+.rule-box .arrow .to{color:var(--green);}
+.rule-box .arrow .sym{color:var(--muted);}
+.branch-demo{display:flex;gap:0;margin-top:10px;}
+.branch-col{flex:1;display:flex;flex-direction:column;align-items:center;padding-top:16px;position:relative;}
+.branch-col::before{content:'';position:absolute;top:0;width:50%;height:2px;background:var(--border);}
+.branch-col.left::before{right:0;}
+.branch-col.right::before{left:0;}
+.branch-node{font-family:var(--mono);font-size:14px;color:var(--accent2, var(--gold));padding:5px 12px;background:rgba(255,209,102,0.08);border-radius:6px;margin-top:4px;}
+.learn-continue{background:linear-gradient(135deg,var(--accent),var(--purple));color:#000;font-family:var(--display);font-weight:700;font-size:16px;padding:14px 40px;border-radius:12px;border:none;cursor:pointer;margin-top:16px;display:block;width:100%;}
+
+/* Floating XP popup */
+.xp-pop{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:var(--gold);color:#000;font-family:var(--display);font-weight:800;font-size:24px;padding:12px 28px;border-radius:12px;pointer-events:none;z-index:999;transition:all 0.15s;}
+.xp-pop.show{transform:translate(-50%,-80px) scale(1);}
+.xp-pop.hide{transform:translate(-50%,-140px) scale(0);opacity:0;}
+
+/* Streak */
+.streak-banner{position:fixed;top:80px;right:24px;background:var(--gold);color:#000;font-family:var(--display);font-weight:700;padding:10px 20px;border-radius:10px;font-size:14px;pointer-events:none;z-index:998;transform:translateX(200%);transition:transform 0.3s;}
+.streak-banner.show{transform:translateX(0);}
+
+/* ══════════════════════════════
+   A+ CERTIFICATION STYLES
+══════════════════════════════ */
+
+/* Grade meter on home */
+.aplus-banner{max-width:900px;width:100%;background:linear-gradient(135deg,rgba(255,209,102,0.06),rgba(168,85,247,0.06));border:1px solid rgba(255,209,102,0.2);border-radius:16px;padding:20px 28px;margin-bottom:28px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+.aplus-grade{font-family:var(--display);font-size:52px;font-weight:800;line-height:1;min-width:60px;}
+.grade-Aplus{background:linear-gradient(135deg,var(--gold),#ff9f1c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.grade-A{color:var(--gold);}
+.grade-B{color:#6ee7b7;}
+.grade-C{color:var(--accent);}
+.grade-D{color:var(--muted);}
+.grade-F{color:var(--red);}
+.aplus-info{flex:1;}
+.aplus-title{font-family:var(--display);font-weight:700;font-size:15px;margin-bottom:4px;}
+.aplus-subtitle{font-size:12px;color:var(--muted);line-height:1.5;}
+.aplus-bars{flex:1;min-width:200px;}
+.abar{margin-bottom:8px;}
+.abar-label{font-family:var(--mono);font-size:10px;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:3px;}
+.abar-track{height:5px;background:var(--border);border-radius:99px;overflow:hidden;}
+.abar-fill{height:100%;border-radius:99px;transition:width 0.8s ease;}
+
+/* Hint button */
+.hint-btn{font-family:var(--mono);font-size:11px;color:var(--muted);cursor:pointer;padding:5px 14px;border:1px dashed var(--border);border-radius:8px;background:transparent;transition:all 0.2s;margin-bottom:12px;}
+.hint-btn:hover{color:var(--gold);border-color:var(--gold);}
+.hint-btn.used{color:var(--red);border-color:rgba(239,68,68,0.3);cursor:default;}
+.hint-cost{color:var(--red);font-size:10px;margin-left:6px;}
+
+/* Timer ring */
+.timer-ring{position:relative;width:44px;height:44px;flex-shrink:0;}
+.timer-ring svg{transform:rotate(-90deg);}
+.timer-ring .ring-bg{fill:none;stroke:var(--border);stroke-width:3;}
+.timer-ring .ring-fill{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round;transition:stroke-dashoffset 1s linear,stroke 0.3s;}
+.timer-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:12px;font-weight:600;}
+
+/* Certification screen */
+#cert{align-items:center;justify-content:flex-start;padding:0;}
+.cert-scroll{max-width:700px;margin:0 auto;padding:40px 24px;width:100%;}
+.cert-header{text-align:center;margin-bottom:40px;}
+.cert-grade-big{font-family:var(--display);font-size:120px;font-weight:800;line-height:1;margin-bottom:8px;}
+.cert-tagline{font-size:14px;color:var(--muted);margin-bottom:4px;}
+.cert-name{font-family:var(--display);font-size:22px;font-weight:700;color:#fff;}
+
+.cert-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:16px;}
+.cert-card-title{font-family:var(--mono);font-size:10px;letter-spacing:3px;color:var(--muted);margin-bottom:16px;}
+.cert-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);}
+.cert-row:last-child{border-bottom:none;}
+.cert-row-label{font-size:14px;color:var(--muted);}
+.cert-row-val{font-family:var(--mono);font-size:14px;font-weight:600;}
+.cert-row-val.good{color:var(--green);}
+.cert-row-val.ok{color:var(--gold);}
+.cert-row-val.bad{color:var(--red);}
+
+.weakness-tag{display:inline-block;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:var(--red);font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:6px;margin:4px;}
+.strength-tag{display:inline-block;background:rgba(6,214,160,0.1);border:1px solid rgba(6,214,160,0.2);color:var(--green);font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:6px;margin:4px;}
+
+.req-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.req-item:last-child{border-bottom:none;}
+.req-check{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
+.req-check.pass{background:rgba(6,214,160,0.15);color:var(--green);}
+.req-check.fail{background:rgba(239,68,68,0.15);color:var(--red);}
+.req-text{flex:1;font-size:13px;color:var(--muted);}
+.req-val{font-family:var(--mono);font-size:12px;}
+
+/* World card — A+ badge overlay */
+.world-aplus{position:absolute;top:12px;right:12px;font-family:var(--display);font-weight:800;font-size:13px;background:linear-gradient(135deg,var(--gold),#ff9f1c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+/* Penalty flash */
+@keyframes flashRed{0%,100%{background:var(--card);}50%{background:rgba(239,68,68,0.15);}}
+.penalty-flash{animation:flashRed 0.4s ease;}
+
+/* ── GUESS TRACKER ── */
+.guess-bar{display:flex;gap:10px;width:100%;margin-top:10px;align-items:center;}
+.guess-btn{font-family:var(--mono);font-size:11px;padding:7px 16px;border-radius:8px;border:1px dashed;cursor:pointer;transition:all 0.2s;background:transparent;}
+.guess-btn.lucky{border-color:var(--gold);color:var(--gold);}
+.guess-btn.lucky:hover,.guess-btn.lucky.active{background:rgba(255,209,102,0.12);border-style:solid;}
+.guess-btn.knew{border-color:var(--green);color:var(--green);}
+.guess-btn.knew:hover,.guess-btn.knew.active{background:rgba(6,214,160,0.12);border-style:solid;}
+.guess-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;}
+
+/* ── STORY MODAL ── */
+.story-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.story-overlay.show{opacity:1;pointer-events:all;}
+.story-box{background:#0f1829;border:1px solid rgba(168,85,247,0.4);border-radius:20px;max-width:520px;width:100%;padding:36px;position:relative;transform:translateY(20px);transition:transform 0.3s;}
+.story-overlay.show .story-box{transform:translateY(0);}
+.story-chapter{font-family:var(--mono);font-size:10px;letter-spacing:3px;color:var(--purple);margin-bottom:12px;}
+.story-scene{font-size:36px;margin-bottom:16px;}
+.story-title{font-family:var(--display);font-size:24px;font-weight:800;color:#fff;margin-bottom:12px;}
+.story-text{font-size:15px;color:#b0bcd4;line-height:1.8;margin-bottom:24px;}
+.story-text em{color:var(--gold);font-style:normal;font-weight:600;}
+.story-continue{background:linear-gradient(135deg,var(--purple),var(--accent));color:#fff;font-family:var(--display);font-weight:700;padding:12px 32px;border-radius:10px;border:none;cursor:pointer;font-size:15px;width:100%;}
+
+/* ── TEACH SCREEN ── */
+#teach{padding:0;}
+.teach-wrap{max-width:680px;margin:0 auto;padding:32px 24px;}
+.teach-topic-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:32px;}
+.teach-topic-btn{background:#13192b;border:1px solid #2e4060;border-radius:12px;padding:16px;cursor:pointer;transition:all 0.2s;text-align:left;}
+.teach-topic-btn:hover{border-color:var(--accent);background:#1a2235;}
+.teach-topic-icon{font-size:24px;margin-bottom:8px;}
+.teach-topic-name{font-family:var(--display);font-weight:700;font-size:14px;color:#f0f4ff;margin-bottom:4px;}
+.teach-topic-desc{font-size:11px;color:var(--muted);}
+.teach-lesson{display:none;}
+.teach-lesson.active{display:block;}
+.teach-back{font-family:var(--mono);font-size:11px;color:var(--muted);cursor:pointer;margin-bottom:24px;display:inline-flex;align-items:center;gap:8px;}
+.teach-back:hover{color:var(--text);}
+.teach-h1{font-family:var(--display);font-size:28px;font-weight:800;color:#fff;margin-bottom:8px;}
+.teach-h2{font-family:var(--display);font-size:18px;font-weight:700;color:var(--accent);margin:28px 0 12px;}
+.teach-p{font-size:15px;color:#b0bcd4;line-height:1.8;margin-bottom:12px;}
+.teach-p strong{color:#f0f4ff;}
+.teach-box{background:#080b14;border-left:3px solid var(--accent);border-radius:0 10px 10px 0;padding:14px 18px;margin:12px 0;font-family:var(--mono);font-size:15px;color:#f0f4ff;}
+.teach-box.gold{border-color:var(--gold);}
+.teach-box.green{border-color:var(--green);}
+.teach-box.red{border-color:var(--red);}
+.teach-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px;}
+.teach-table th{background:#1a2235;color:var(--accent);padding:10px 14px;text-align:left;font-family:var(--mono);font-size:11px;letter-spacing:1px;}
+.teach-table td{padding:10px 14px;border-bottom:1px solid #1e2d45;color:#d0daf0;}
+.teach-table tr:last-child td{border-bottom:none;}
+.teach-tip{background:rgba(255,209,102,0.06);border:1px solid rgba(255,209,102,0.2);border-radius:10px;padding:14px 18px;margin:16px 0;font-size:13px;color:#d0daf0;line-height:1.7;}
+.teach-tip::before{content:'💡 ';font-size:14px;}
+
+/* home teach btn */
+.teach-home-btn{font-family:var(--mono);font-size:12px;color:var(--accent);cursor:pointer;padding:8px 20px;border:1px solid rgba(0,212,255,0.3);border-radius:99px;background:transparent;transition:all 0.2s;margin-top:12px;}
+.teach-home-btn:hover{background:rgba(0,212,255,0.08);}
+
+/* ── NAPOLEON HILL MID-LESSON ── */
+.hill-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:600;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity 0.4s;}
+.hill-overlay.show{opacity:1;pointer-events:all;}
+.hill-box{background:linear-gradient(160deg,#0a0e1a,#11192e);border:1px solid rgba(255,209,102,0.3);border-radius:24px;max-width:580px;width:100%;padding:40px;position:relative;transform:translateY(24px);transition:transform 0.4s;max-height:90vh;overflow-y:auto;}
+.hill-overlay.show .hill-box{transform:translateY(0);}
+.hill-law-tag{font-family:var(--mono);font-size:10px;letter-spacing:4px;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:10px;}
+.hill-law-tag::before{content:'';flex:1;height:1px;background:rgba(255,209,102,0.2);}
+.hill-law-tag::after{content:'';flex:1;height:1px;background:rgba(255,209,102,0.2);}
+.hill-figure{font-size:48px;margin-bottom:8px;text-align:center;}
+.hill-figure-name{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;margin-bottom:20px;letter-spacing:2px;}
+.hill-title{font-family:var(--display);font-size:26px;font-weight:800;color:#fff;margin-bottom:16px;text-align:center;line-height:1.2;}
+.hill-body{font-size:15px;color:#c8d4e8;line-height:1.9;margin-bottom:28px;}
+.hill-body em{color:var(--gold);font-style:normal;font-weight:600;}
+.hill-body strong{color:#fff;}
+.hill-score-box{background:rgba(255,209,102,0.06);border:1px solid rgba(255,209,102,0.15);border-radius:12px;padding:16px 20px;margin-bottom:24px;display:flex;gap:24px;flex-wrap:wrap;}
+.hill-stat{text-align:center;flex:1;}
+.hill-stat-val{font-family:var(--display);font-size:28px;font-weight:800;color:var(--gold);}
+.hill-stat-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;margin-top:2px;}
+.hill-quote{border-left:3px solid var(--gold);padding:12px 18px;margin:20px 0;font-style:italic;color:var(--gold);font-size:14px;background:rgba(255,209,102,0.04);border-radius:0 10px 10px 0;}
+.hill-continue{background:linear-gradient(135deg,var(--gold),#ff9f1c);color:#000;font-family:var(--display);font-weight:800;font-size:16px;padding:14px 36px;border-radius:12px;border:none;cursor:pointer;width:100%;transition:transform 0.2s;}
+.hill-continue:hover{transform:translateY(-2px);}
+
+.lyra-fab{position:fixed;bottom:28px;right:28px;z-index:400;cursor:pointer;transition:transform 0.2s;}
+.lyra-fab:hover{transform:scale(1.08);}
+.lyra-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--accent));display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 0 24px rgba(168,85,247,0.5);position:relative;}
+.lyra-ping{position:absolute;top:-2px;right:-2px;width:14px;height:14px;border-radius:50%;background:var(--gold);border:2px solid var(--bg);animation:ping 2s infinite;}
+@keyframes ping{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.6;transform:scale(1.3);}}
+
+.lyra-panel{position:fixed;bottom:100px;right:28px;width:360px;max-width:calc(100vw - 40px);background:#0f1829;border:1px solid rgba(168,85,247,0.35);border-radius:20px;z-index:401;display:none;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.6);overflow:hidden;max-height:520px;}
+.lyra-panel.open{display:flex;animation:slideUp 0.25s ease;}
+.lyra-head{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid rgba(168,85,247,0.2);background:rgba(168,85,247,0.06);}
+.lyra-head-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--accent));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.lyra-head-info{flex:1;}
+.lyra-name{font-family:var(--display);font-weight:700;font-size:14px;color:#fff;}
+.lyra-role{font-family:var(--mono);font-size:10px;color:var(--purple);letter-spacing:1px;}
+.lyra-close{font-size:18px;color:var(--muted);cursor:pointer;padding:4px;line-height:1;}
+.lyra-close:hover{color:#fff;}
+
+.lyra-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth;}
+.lyra-msgs::-webkit-scrollbar{width:4px;}
+.lyra-msgs::-webkit-scrollbar-track{background:transparent;}
+.lyra-msgs::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px;}
+
+.lyra-msg{display:flex;gap:10px;align-items:flex-start;}
+.lyra-msg.user{flex-direction:row-reverse;}
+.lyra-msg-bubble{background:#1a2235;border-radius:14px;padding:11px 14px;font-size:13px;line-height:1.6;color:#d0daf0;max-width:260px;}
+.lyra-msg.user .lyra-msg-bubble{background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.15);color:#e8f4ff;}
+.lyra-msg.lyra .lyra-msg-bubble{border:1px solid rgba(168,85,247,0.2);}
+.lyra-msg-bubble strong{color:#fff;}
+.lyra-msg-bubble code{font-family:var(--mono);font-size:12px;background:rgba(0,0,0,0.3);padding:1px 5px;border-radius:4px;color:var(--gold);}
+.lyra-mini-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--accent));display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.lyra-user-mini{width:28px;height:28px;border-radius:50%;background:#1e2d45;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+
+.lyra-typing{display:flex;gap:5px;align-items:center;padding:8px 12px;}
+.lyra-dot{width:7px;height:7px;border-radius:50%;background:var(--purple);animation:typingDot 1.2s infinite;}
+.lyra-dot:nth-child(2){animation-delay:0.2s;}
+.lyra-dot:nth-child(3){animation-delay:0.4s;}
+@keyframes typingDot{0%,60%,100%{transform:translateY(0);opacity:0.4;}30%{transform:translateY(-5px);opacity:1;}}
+
+.lyra-quick{display:flex;flex-wrap:wrap;gap:6px;padding:10px 16px;border-top:1px solid rgba(168,85,247,0.15);}
+.lyra-q-btn{font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:99px;border:1px solid rgba(168,85,247,0.3);color:#b0a0ff;background:transparent;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.lyra-q-btn:hover{background:rgba(168,85,247,0.1);border-color:var(--purple);}
+
+.lyra-input-row{display:flex;gap:8px;padding:12px 14px;border-top:1px solid rgba(168,85,247,0.15);}
+.lyra-input{flex:1;background:#080b14;border:1px solid #2e4060;border-radius:10px;padding:9px 13px;font-family:var(--body);font-size:13px;color:#f0f4ff;outline:none;resize:none;}
+.lyra-input:focus{border-color:var(--purple);}
+.lyra-send{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--purple),var(--accent));border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.15s;}
+.lyra-send:hover{transform:scale(1.08);}
+
+  .world-grid{grid-template-columns:1fr 1fr;}
+  .q-formula{font-size:16px;}
+  .cert-grade-big{font-size:80px;}
+  .aplus-banner{flex-direction:column;gap:16px;}
+}
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+
+<!-- XP popup -->
+<div class="xp-pop" id="xpPop">+10 XP</div>
+<div class="streak-banner" id="streakBanner">🔥 Streak x3!</div>
+
+<!-- LYRA AI TEACHER -->
+<div class="lyra-fab" id="lyraFab" onclick="toggleLyra()">
+  <div class="lyra-avatar">🔮<div class="lyra-ping"></div></div>
+</div>
+
+<div class="lyra-panel" id="lyraPanel">
+  <div class="lyra-head">
+    <div class="lyra-head-avatar">🔮</div>
+    <div class="lyra-head-info">
+      <div class="lyra-name">Lyra</div>
+      <div class="lyra-role">ORACLE OF THE ARCHIVE · AI TEACHER</div>
+    </div>
+    <div class="lyra-close" onclick="toggleLyra()">✕</div>
+  </div>
+  <div class="lyra-msgs" id="lyraMsgs"></div>
+  <div class="lyra-quick" id="lyraQuick"></div>
+  <div class="lyra-input-row">
+    <textarea class="lyra-input" id="lyraInput" rows="1" placeholder="Ask Lyra anything..." onkeydown="lyraKeydown(event)"></textarea>
+    <button class="lyra-send" onclick="lyraSend()">➤</button>
+  </div>
+</div>
+
+<!-- NAPOLEON HILL MID-LESSON INTERRUPT -->
+<div class="hill-overlay" id="hillOverlay">
+  <div class="hill-box" id="hillBox"></div>
+</div>
+
+<!-- STORY MODAL -->
+<div class="story-overlay" id="storyOverlay">
+  <div class="story-box">
+    <div class="story-chapter" id="storyChapter">PROLOGUE</div>
+    <div class="story-scene" id="storyScene">🌌</div>
+    <div class="story-title" id="storyTitle"></div>
+    <div class="story-text" id="storyText"></div>
+    <button class="story-continue" onclick="closeStory()">Continue the Quest →</button>
+  </div>
+</div>
+
+<!-- TEACH SCREEN -->
+<div class="screen" id="teach">
+  <div class="game-header">
+    <div class="gh-left">
+      <button class="back-btn" onclick="goHome()">← Back</button>
+      <span class="gh-title">📚 Study Room</span>
+    </div>
+  </div>
+  <div class="teach-wrap">
+    <div id="teachTopics">
+      <p style="color:var(--muted);font-size:13px;margin-bottom:20px;">Pick a topic to review — no timer, no pressure. Just learning.</p>
+      <div class="teach-topic-grid" id="teachTopicGrid"></div>
+    </div>
+    <div class="teach-lesson" id="teachLesson"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     HOME SCREEN
+══════════════════════════════ -->
+<div class="screen active" id="home">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:40px 24px;">
+    <div class="home-badge">PHIL 2170B · WINTER 2026</div>
+    <h1>
+      <span class="line1">LOGIC</span>
+      <span class="line2">QUEST</span>
+    </h1>
+    <p class="home-sub">Napoleon Hill spent 20 years studying 500 of history's greatest wealth-builders. Their secret? <em>Definiteness of purpose.</em> Master symbolic logic through 5 worlds — each one unlocking a Hill Law — and walk into your exam ready to win.</p>
+
+    <div class="world-grid" id="worldGrid"></div>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:24px;">
+      <button class="teach-home-btn" onclick="showScreen('teach')">📚 Study Room</button>
+      <button class="teach-home-btn" onclick="showCert()" style="border-color:rgba(255,209,102,0.3);color:var(--gold);">📋 Report Card</button>
+    </div>
+
+    <div class="score-bar">
+      <div class="score-item">⚡ XP <span class="score-val" id="totalXP">0</span></div>
+      <div class="score-item">🏆 Best Streak <span class="score-val" id="bestStreak">0</span></div>
+      <div class="score-item">✅ Completed <span class="score-val" id="completedCount">0</span>/5</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     LEARN SCREEN
+══════════════════════════════ -->
+<div class="screen" id="learn">
+  <div class="game-header">
+    <div class="gh-left">
+      <button class="back-btn" onclick="goHome()">← Back</button>
+      <span class="gh-title" id="learnTitle">Learn</span>
+    </div>
+  </div>
+  <div class="learn-content" id="learnContent"></div>
+</div>
+
+<!-- ══════════════════════════════
+     GAME SCREEN
+══════════════════════════════ -->
+<div class="screen" id="game">
+  <div class="game-header">
+    <div class="gh-left">
+      <button class="back-btn" onclick="goHome()">← Back</button>
+      <span class="gh-title" id="gameTitle">World 1</span>
+    </div>
+    <div class="gh-right">
+      <span class="xp-badge">⚡ <span id="gameXP">0</span> XP</span>
+      <span class="lives" id="livesDisplay">❤️❤️❤️</span>
+      <span style="font-family:var(--mono);font-size:12px;color:var(--muted);">🔥 <span id="streakDisplay">0</span></span>
+    </div>
+  </div>
+
+  <div class="question-area" id="questionArea">
+    <div class="q-progress">
+      <div class="q-meta">
+        <span id="qMeta">Question 1 of 10</span>
+        <span id="qDiff" style="color:var(--gold)"></span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+
+    <div class="q-card" id="qCard">
+      <span class="q-type-tag" id="qTypeTag">MULTIPLE CHOICE</span>
+      <div class="q-text" id="qText"></div>
+      <div class="q-formula" id="qFormula" style="display:none"></div>
+      <div class="q-hint" id="qHint"></div>
+    </div>
+
+    <div id="answerArea" style="width:100%"></div>
+    <div style="display:flex;align-items:center;gap:12px;width:100%;margin-bottom:4px;">
+      <button class="hint-btn" id="hintBtn" onclick="useHint()">💡 Hint <span class="hint-cost">(-5 pts)</span></button>
+      <div style="flex:1"></div>
+      <div class="timer-ring" id="timerRing">
+        <svg width="44" height="44" viewBox="0 0 44 44">
+          <circle class="ring-bg" cx="22" cy="22" r="18"/>
+          <circle class="ring-fill" id="ringFill" cx="22" cy="22" r="18" stroke-dasharray="113" stroke-dashoffset="0"/>
+        </svg>
+        <div class="timer-num" id="timerNum">30</div>
+      </div>
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <div class="guess-bar" id="guessBar" style="display:none;">
+      <span class="guess-label">DID YOU ACTUALLY KNOW THAT?</span>
+      <button class="guess-btn knew" onclick="markGuess('knew')">✓ Knew it</button>
+      <button class="guess-btn lucky" onclick="markGuess('lucky')">🎲 Lucky guess</button>
+    </div>
+    <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Continue →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     CERTIFICATION SCREEN
+══════════════════════════════ -->
+<div class="screen" id="cert">
+  <div class="game-header">
+    <div class="gh-left">
+      <button class="back-btn" onclick="goHome()">← Back to Home</button>
+      <span class="gh-title">📋 A+ Report Card</span>
+    </div>
+  </div>
+  <div class="cert-scroll" id="certScroll"></div>
+</div>
+
+
+<div class="screen" id="results">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:40px 24px;text-align:center;">
+    <div class="result-circle" id="resultCircle">
+      <div class="result-inner">
+        <div class="result-score" id="resultScore">8/10</div>
+        <div class="result-label">SCORE</div>
+      </div>
+    </div>
+    <div class="result-title" id="resultTitle">Well Done!</div>
+    <div class="result-msg" id="resultMsg"></div>
+    <div class="result-actions">
+      <button class="btn-primary" onclick="retryWorld()">Try Again</button>
+      <button class="btn-secondary" onclick="goHome()">Home</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// STARS
+// ═══════════════════════════════════════════
+(function(){
+  const c = document.getElementById('stars');
+  const ctx = c.getContext('2d');
+  c.width = window.innerWidth; c.height = window.innerHeight;
+  for(let i=0;i<120;i++){
+    const x=Math.random()*c.width, y=Math.random()*c.height, r=Math.random()*1.5;
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,255,255,${Math.random()*0.6+0.1})`; ctx.fill();
+  }
+})();
+
+// ═══════════════════════════════════════════
+// A+ CERTIFICATION ENGINE
+// ═══════════════════════════════════════════
+const APLUS_REQUIREMENTS = [
+  { id:'all_worlds',   label:'Complete all 5 worlds',                     check: s => s.worldProgress.filter(Boolean).length === 5 },
+  { id:'no_hints_w4',  label:'Complete Exam Gauntlet with 0 hints used',  check: s => s.worldHints[4] === 0 && s.worldProgress[4] },
+  { id:'hard_acc',     label:'85%+ accuracy on Hard questions (lifetime)', check: s => { const t=s.lifetime.hardTotal; return t>=5 && (s.lifetime.hardCorrect/t)>=0.85; } },
+  { id:'med_acc',      label:'90%+ accuracy on Medium questions',          check: s => { const t=s.lifetime.medTotal;  return t>=5 && (s.lifetime.medCorrect/t)>=0.90; } },
+  { id:'no_hint_pass', label:'Pass 3+ worlds with zero hints',             check: s => s.worldHints.filter((h,i)=>h===0&&s.worldProgress[i]).length>=3 },
+  { id:'speed',        label:'Avg answer time ≤ 25s (across last 20 Qs)', check: s => s.lifetime.recentTimes.length>=10 && avg(s.lifetime.recentTimes)<=25 },
+  { id:'gauntlet_90',  label:'Score 90%+ on Exam Gauntlet',               check: s => (s.worldBestPct[4]||0) >= 90 },
+  { id:'streak5',      label:'Achieve a 5-question streak at least once',  check: s => s.bestStreak >= 5 },
+];
+
+function avg(arr){ return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0; }
+
+function computeGrade(s) {
+  const met = APLUS_REQUIREMENTS.filter(r => r.check(s)).length;
+  const total = APLUS_REQUIREMENTS.length;
+  const lt = s.lifetime;
+  const allTotal = lt.easyTotal + lt.medTotal + lt.hardTotal;
+  const allCorrect = lt.easyCorrect + lt.medCorrect + lt.hardCorrect;
+  const overallAcc = allTotal > 0 ? allCorrect / allTotal : 0;
+  const reqPct = met / total;
+  if(reqPct === 1 && overallAcc >= 0.88) return 'A+';
+  if(reqPct >= 0.875 || overallAcc >= 0.92) return 'A';
+  if(reqPct >= 0.75  || overallAcc >= 0.82) return 'B+';
+  if(reqPct >= 0.625 || overallAcc >= 0.72) return 'B';
+  if(reqPct >= 0.5   || overallAcc >= 0.62) return 'C+';
+  if(reqPct >= 0.375 || overallAcc >= 0.52) return 'C';
+  if(reqPct >= 0.25  || overallAcc >= 0.42) return 'D';
+  return 'F';
+}
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let state = {
+  xp: 0, bestStreak: 0, streak: 0, lives: 3,
+  currentWorld: 0, currentQ: 0, correct: 0,
+  worldProgress: [false,false,false,false,false],
+  worldBestPct:  [0,0,0,0,0],
+  worldHints:    [0,0,0,0,0],   // hints used per world (best run)
+  answered: false,
+  hintsThisRun: 0,
+  hintUsedThisQ: false,
+  timer: null, timeLeft: 30, qStartTime: 0,
+  lifetime: {
+    easyCorrect:0, easyTotal:0,
+    medCorrect:0,  medTotal:0,
+    hardCorrect:0, hardTotal:0,
+    recentTimes: [],   // last 20 answer times in seconds
+  }
+};
+
+// ═══════════════════════════════════════════
+// WORLDS CONFIG
+// ═══════════════════════════════════════════
+const worlds = [
+  {
+    id: 0, icon: '🔥', title: 'Burning Desire',
+    desc: 'Hill\'s First Law — the starting point of all achievement',
+    color: '#00d4ff', passScore: 6,
+    hillLaw: 'The First Law: DESIRE',
+    hillFigure: 'Andrew Carnegie',
+    midLesson: {
+      after: 4,
+      title: 'Carnegie\'s Secret — The Power of Definiteness',
+      figure: '🏭', figureName: 'Andrew Carnegie',
+      lesson: `Napoleon Hill spent 20 years studying 500 of the world's most successful people at Andrew Carnegie's request. Carnegie told him: <em>"The starting point of all achievement is DESIRE. Not a hope, not a wish — a burning, obsessive, white-hot desire."</em><br><br>Carnegie built US Steel from nothing using one principle: he knew EXACTLY what he wanted, wrote it down, and read it twice a day. That's definiteness of purpose.<br><br><strong>The Logic Connection:</strong> A tautology is always true — it needs no conditions. Your desire should be the same: unconditional, always on, burning regardless of circumstance. A contradiction is impossible — that's what most people's relationship with wealth looks like: "I want money BUT I'm not willing to change."<br><br>You've answered ${4} questions correctly. Carnegie answered his own life-questions correctly 500 times over. Keep going.`
+    }
+  },
+  {
+    id: 1, icon: '🧠', title: 'Faith & Autosuggestion',
+    desc: 'Hill\'s Laws 2 & 3 — programming your subconscious',
+    color: '#a855f7', passScore: 6,
+    hillLaw: 'Laws 2 & 3: FAITH + AUTOSUGGESTION',
+    hillFigure: 'Henry Ford',
+    midLesson: {
+      after: 4,
+      title: 'Henry Ford\'s Impossible Engine',
+      figure: '🚗', figureName: 'Henry Ford',
+      lesson: `Henry Ford decided he wanted a V8 engine cast in a single block. His engineers said it was impossible. Ford said: <em>"Produce it anyway."</em> They tried for a year. Failed. Ford said: <em>"Stay on the job regardless of time required."</em> They produced it.<br><br>Hill called this <strong>Faith</strong> — not religious faith, but the absolute conviction that what you see in your mind will manifest in reality if you act on it consistently. Ford literally TALKED to himself every morning about what he was building. That's autosuggestion — feeding your subconscious the instructions.<br><br><strong>The Logic Connection:</strong> Symbolization is about translating messy, ambiguous language into precise, unambiguous form. Ford did the same with his vision — he took a vague dream ("a car for everyone") and made it precise enough to execute. "Only if" has ONE correct translation. Your goals need the same precision.<br><br>No fuzzy thinking. No "I kind of want to be rich." State it exactly. Write it down. Read it twice a day.`
+    }
+  },
+  {
+    id: 2, icon: '📊', title: 'Specialized Knowledge',
+    desc: 'Hill\'s Law 4 — the mastermind and expertise',
+    color: '#ffd166', passScore: 6,
+    hillLaw: 'Law 4: SPECIALIZED KNOWLEDGE',
+    hillFigure: 'Thomas Edison',
+    midLesson: {
+      after: 5,
+      title: 'Edison\'s 10,000 Ways That Won\'t Work',
+      figure: '💡', figureName: 'Thomas Edison',
+      lesson: `A reporter asked Edison how it felt to fail 10,000 times before inventing the lightbulb. Edison replied: <em>"I have not failed. I've just found 10,000 ways that won't work."</em><br><br>Hill taught that general education means nothing — what matters is <strong>specialized knowledge</strong> applied toward a specific goal. Edison didn't know everything. He knew his domain cold, and he had a Mastermind Alliance: a group of brilliant people he could call on.<br><br><strong>The Logic Connection:</strong> A truth table is exhaustive — it tests EVERY possible row, leaving no possibility unchecked. Edison was exhaustive. He didn't guess. He systematically eliminated what was false until only what was true remained.<br><br>That's what you're doing right now. Every wrong answer is a row you've eliminated. Every correct answer brings you closer to the truth. The question is: are you learning FROM each wrong row, or just moving past it?`
+    }
+  },
+  {
+    id: 3, icon: '🌲', title: 'The Mastermind',
+    desc: 'Hill\'s Law 9 — coordination of knowledge and effort',
+    color: '#06d6a0', passScore: 7,
+    hillLaw: 'Law 9: THE MASTERMIND PRINCIPLE',
+    hillFigure: 'Napoleon Hill himself',
+    midLesson: {
+      after: 5,
+      title: 'Hill\'s Secret Mastermind — The Invisible Counselors',
+      figure: '🌙', figureName: 'Napoleon Hill',
+      lesson: `One of Hill's most extraordinary habits: every night before sleep, he would hold "meetings" in his imagination with nine historical figures — Lincoln, Edison, Ford, Carnegie, Napoleon Bonaparte, Washington, Paine, Darwin, and Emerson. He called them his <strong>Invisible Counselors</strong>.<br><br>He would ask each one a question. Lincoln would counsel him on integrity. Carnegie on persistence. Edison on creative thinking. Over time he felt these "meetings" were so real, so instructive, that he kept them going for years.<br><br><strong>The Logic Connection:</strong> Truth trees branch — they systematically explore EVERY path until each one either closes (contradiction) or stays open (possibility). Hill's mastermind meetings were truth tree thinking applied to life decisions: explore every branch, close off the contradictions, and follow the open paths.<br><br>When you close a branch in a truth tree, you're eliminating impossibility. When Hill "consulted" Lincoln and found the answer contradicted his own values, he closed that branch. Only valid paths forward remained.`
+    }
+  },
+  {
+    id: 4, icon: '⚡', title: 'The Final Exam Gauntlet',
+    desc: 'Persistence + all 17 laws — the ultimate test',
+    color: '#ef4444', passScore: 7,
+    hillLaw: 'Law 8: PERSISTENCE',
+    hillFigure: 'R.U. Darby',
+    midLesson: {
+      after: 5,
+      title: 'Three Feet From Gold',
+      figure: '⛏️', figureName: 'R.U. Darby',
+      lesson: `One of Hill's most famous stories: R.U. Darby and his uncle struck gold during the gold rush. They borrowed money, bought equipment, and mined a rich vein. Then the vein disappeared. They drilled everywhere. Nothing. They quit and sold the equipment to a junkman for a few hundred dollars.<br><br>The junkman hired a mining engineer who said: <em>the vein is three feet from where Darby stopped.</em> The junkman made millions.<br><br>Darby went on to become one of the most successful insurance salespeople in America — because that experience burned one lesson into him forever: <strong>NEVER QUIT.</strong><br><br><strong>The Logic Connection:</strong> This is the Gauntlet. This is where most students stop — the questions are hard, the trees are complex, the symbolization is tricky. You are three feet from gold. Every question you push through right now is you drilling past where Darby stopped.<br><br>The exam is coming. You're almost there. Don't you dare sell your equipment.`
+    }
+  }
+];
+
+// ═══════════════════════════════════════════
+// QUESTION BANKS
+// ═══════════════════════════════════════════
+const questionBanks = [
+
+// ── WORLD 0: Terms & Symbols ──────────────
+[
+  {
+    type:'mc', diff:'Easy',
+    text:'What does the symbol ∧ represent?',
+    options:['Disjunction (OR)','Negation (NOT)','Conjunction (AND)','Conditional (IF...THEN)'],
+    answer:2,
+    explain:'∧ is the conjunction symbol meaning AND. Both sides must be true for the whole formula to be true.'
+  },
+  {
+    type:'mc', diff:'Easy',
+    text:'A sentence that is TRUE on every possible row of its truth table is called a:',
+    options:['Contradiction','Contingent sentence','Tautology','Valid argument'],
+    answer:2,
+    explain:'A tautology is always true regardless of the truth values of its sentence letters. Example: P ∨ ¬P'
+  },
+  {
+    type:'mc', diff:'Easy',
+    text:'Which of the following is the ONLY case where P → Q is FALSE?',
+    options:['P is false, Q is false','P is false, Q is true','P is true, Q is true','P is true, Q is false'],
+    answer:3,
+    explain:'The conditional P → Q is false ONLY when the antecedent (P) is true and the consequent (Q) is false. All other combinations are true.'
+  },
+  {
+    type:'mc', diff:'Medium',
+    text:'Two sentences are LOGICALLY EQUIVALENT if and only if:',
+    options:[
+      'They are both tautologies',
+      'They have the same truth value on every possible row',
+      'They share at least one sentence letter',
+      'One is the negation of the other'
+    ],
+    answer:1,
+    explain:'Logical equivalence means the sentences match in truth value on every row — they rise and fall together. This is equivalent to their biconditional (↔) being a tautology.'
+  },
+  {
+    type:'mc', diff:'Medium',
+    text:'What is the main connective of: ¬(P ∧ Q) → (R ∨ S)',
+    options:['¬','∧','→','∨'],
+    answer:2,
+    explain:'The main connective has widest scope — it\'s the last one you\'d evaluate. Here → connects the whole left side ¬(P ∧ Q) to the right side (R ∨ S).'
+  },
+  {
+    type:'mc', diff:'Medium',
+    text:'A sentence that is FALSE on every possible row of its truth table is called a:',
+    options:['Tautology','Contingent sentence','Valid sentence','Contradiction'],
+    answer:3,
+    explain:'A contradiction is always false — no possible assignment of truth values makes it true. Classic example: P ∧ ¬P'
+  },
+  {
+    type:'mc', diff:'Medium',
+    text:'Which sentence is logically equivalent to P → Q?',
+    options:['Q → P','¬P → ¬Q','¬Q → ¬P','¬P ∧ Q'],
+    answer:2,
+    explain:'The contrapositive (¬Q → ¬P) is always logically equivalent to the original conditional (P → Q). The converse (Q → P) and inverse (¬P → ¬Q) are NOT equivalent to the original.'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'An argument is SOUND if and only if:',
+    options:[
+      'The conclusion is true',
+      'It is valid and the conclusion is true',
+      'It is valid and all premises are actually true',
+      'There is no counterexample'
+    ],
+    answer:2,
+    explain:'Soundness requires BOTH validity (structure is correct) AND that all premises are actually true in the real world. A sound argument guarantees a true conclusion.'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'Which of the following CAN be true of a valid argument?',
+    options:[
+      'All premises true, conclusion false',
+      'All premises false, conclusion false',
+      'Some premises false, conclusion true',
+      'Both B and C'
+    ],
+    answer:3,
+    explain:'A valid argument only guarantees: IF all premises are true THEN conclusion is true. Valid arguments can have false premises AND a false conclusion (B), or false premises and a true conclusion (C). What\'s impossible is true premises + false conclusion.'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'A set of sentences {P, Q, R} is UNSATISFIABLE if and only if:',
+    options:[
+      'At least one sentence in the set is false',
+      'The sentences are all contradictions',
+      'There is no possible truth assignment making all sentences true simultaneously',
+      'The sentences are all logically equivalent'
+    ],
+    answer:2,
+    explain:'Unsatisfiability means the sentences "clash" — no single row can make all of them true at the same time. This is the same as saying the set of sentences entails a contradiction.'
+  }
+],
+
+// ── WORLD 1: Symbolization ────────────────
+[
+  {
+    type:'mc', diff:'Easy',
+    text:'How do you symbolize: "It is raining AND it is cold"?',
+    formula:'Let R = "It is raining", C = "It is cold"',
+    options:['R ∨ C','R → C','R ∧ C','¬R ∧ C'],
+    answer:2,
+    explain:'AND is symbolized as ∧ (conjunction). Both conditions must hold simultaneously.'
+  },
+  {
+    type:'mc', diff:'Easy',
+    text:'How do you symbolize: "If it rains, then the streets are wet"?',
+    formula:'Let R = "It rains", W = "Streets are wet"',
+    options:['R ∧ W','R ∨ W','W → R','R → W'],
+    answer:3,
+    explain:'IF...THEN is the conditional →. The IF-part (antecedent) goes on the left: R → W'
+  },
+  {
+    type:'mc', diff:'Medium',
+    text:'Which formula correctly symbolizes: "P only if Q"?',
+    options:['Q → P','P ↔ Q','P → Q','P ∧ Q'],
+    answer:2,
+    explain:'"P only if Q" means P cannot be true unless Q is also true — so if P is true, Q must be true: P → Q. This trips people up! "Only if" introduces the CONSEQUENT, not the antecedent.'
+  },
+  {
+    type:'mc', diff:'Medium',
+    text:'How do you symbolize: "Neither P nor Q"?',
+    options:['¬P ∨ ¬Q','¬(P ∨ Q)','¬P → Q','P ∧ ¬Q'],
+    answer:1,
+    explain:'"Neither P nor Q" means BOTH are false: ¬P ∧ ¬Q. Note: ¬(P ∨ Q) is equivalent by De Morgan\'s Law! Both are correct, but ¬P ∧ ¬Q is the direct translation.'
+  },
+  {
+    type:'mc', diff:'Medium',
+    text:'Symbolize: "It will rain unless it is sunny"',
+    formula:'Let R = "It will rain", S = "It is sunny"',
+    options:['R → S','¬S → R','R ∧ ¬S','S → R'],
+    answer:1,
+    explain:'"P unless Q" means "if not Q then P": ¬S → R. Or equivalently: R ∨ S. The "unless" introduces the condition under which the main thing STILL happens — rain happens unless sun prevents it.'
+  },
+  {
+    type:'mc', diff:'Medium',
+    text:'Which correctly symbolizes: "P if and only if not Q"?',
+    options:['P → ¬Q','¬Q → P','P ↔ ¬Q','¬(P ↔ Q)'],
+    answer:2,
+    explain:'"P if and only if X" becomes P ↔ X. Here X = ¬Q, so: P ↔ ¬Q'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'Symbolize: "If both P and Q, then either R or not S"',
+    options:[
+      'P ∧ Q → R ∨ ¬S',
+      '(P ∧ Q) → (R ∨ ¬S)',
+      'P → (Q → R ∨ ¬S)',
+      '(P ∧ Q) ∧ (R ∨ ¬S)'
+    ],
+    answer:1,
+    explain:'The parentheses make the structure explicit: antecedent = (P ∧ Q), consequent = (R ∨ ¬S). While option A works with precedence rules, option B is clearer and unambiguous.'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'Which formula is the correct symbolization of "P is a necessary condition for Q"?',
+    options:['P → Q','Q → P','P ↔ Q','¬P → ¬Q'],
+    answer:1,
+    explain:'"P is necessary for Q" means Q cannot happen without P — so if Q then P: Q → P. Remember: NECESSARY = consequent, SUFFICIENT = antecedent. "P is sufficient for Q" = P → Q.'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'Symbolize: "Not both P and Q, but at least one of them"',
+    options:[
+      '¬(P ∧ Q) ∧ (P ∨ Q)',
+      '¬P ∧ ¬Q',
+      '(P ∨ Q) → ¬(P ∧ Q)',
+      '¬P ∨ ¬Q'
+    ],
+    answer:0,
+    explain:'We need TWO conditions: (1) NOT both: ¬(P ∧ Q), AND (2) at least one: (P ∨ Q). Combined: ¬(P ∧ Q) ∧ (P ∨ Q). This is actually the exclusive OR (XOR)!'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'Which correctly symbolizes: "Q is sufficient but not necessary for P"?',
+    options:[
+      'Q → P but not P → Q',
+      '(Q → P) ∧ ¬(P → Q)',
+      '(Q → P) ∧ (P ↛ Q)',
+      'Both A and B say the same thing'
+    ],
+    answer:3,
+    explain:'Q sufficient for P = Q → P. NOT necessary = it\'s not the case that without Q, P can\'t happen = ¬(P → Q) i.e., P can be true without Q. Options A and B express the same thing.'
+  }
+],
+
+// ── WORLD 2: Truth Tables ─────────────────
+[
+  {
+    type:'mc', diff:'Easy',
+    text:'How many rows does a truth table for a formula with 3 sentence letters (P, Q, R) need?',
+    options:['3','6','8','9'],
+    answer:2,
+    explain:'With n sentence letters, you need 2ⁿ rows. With 3 letters: 2³ = 8 rows.'
+  },
+  {
+    type:'mc', diff:'Easy',
+    text:'What is the truth value of P ∧ Q when P = T and Q = F?',
+    options:['True','False','It depends','Undefined'],
+    answer:1,
+    explain:'Conjunction (AND) requires BOTH sides to be true. Since Q is false, P ∧ Q is false.'
+  },
+  {
+    type:'mc', diff:'Easy',
+    text:'What is the truth value of P → Q when P = F and Q = F?',
+    options:['True','False','It depends','Undefined'],
+    answer:0,
+    explain:'The conditional P → Q is only false when P is TRUE and Q is FALSE. When P is false, the conditional is vacuously true — it\'s like a promise that was never invoked.'
+  },
+  {
+    type:'mc', diff:'Medium',
+    text:'Which formula is a TAUTOLOGY?',
+    options:['P ∧ ¬P','P → P','P ∨ Q','P ↔ Q'],
+    answer:1,
+    explain:'P → P is always true — "if P then P" can never be false. A is a contradiction, C and D are contingent (true sometimes, false sometimes).'
+  },
+  {
+    type:'mc', diff:'Medium',
+    text:'An argument is valid if and only if its corresponding conditional (premises → conclusion) is a:',
+    options:['Contingent sentence','Contradiction','Tautology','Consistent formula'],
+    answer:2,
+    explain:'An argument is valid iff there is no row where premises are all true and conclusion is false — which is exactly the condition for (P₁ ∧ P₂ ∧ ... ∧ Pₙ) → C being a tautology.'
+  },
+  {
+    type:'mc', diff:'Medium',
+    text:'In a truth table test for validity, what are you looking for?',
+    options:[
+      'A row where conclusion is true',
+      'A row where all premises are true and conclusion is false',
+      'A row where all premises are false',
+      'A row where premise and conclusion differ'
+    ],
+    answer:1,
+    explain:'A counterexample to validity is a row where ALL premises are true AND the conclusion is false. Finding even ONE such row proves the argument is invalid.'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'Consider: P → Q, Q → R ∴ P → R. Which row would be a counterexample IF one existed?',
+    options:[
+      'P=T, Q=T, R=T',
+      'P=T, Q=F, R=T',
+      'P=T, Q=T, R=F',
+      'No counterexample — it\'s valid'
+    ],
+    answer:3,
+    explain:'This is Hypothetical Syllogism — it\'s valid. To see why: if P→Q and Q→R are both true, tracing through: P true forces Q true (from premise 1), Q true forces R true (from premise 2). So P true always forces R true. No counterexample exists.'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'P ∨ Q, ¬P ∴ Q — which row correctly tests this argument?',
+    formula:'P=F, Q=F: P∨Q=F, ¬P=T, Q=F',
+    options:[
+      'Premises both true, conclusion false — INVALID',
+      'First premise false — this row doesn\'t count',
+      'This row shows the argument is valid',
+      'P=T, Q=F is the counterexample row'
+    ],
+    answer:1,
+    explain:'When P=F, Q=F: P∨Q = F. Since the first premise is false, this row doesn\'t test the argument. For a counterexample we need ALL premises true. In fact, this argument (Disjunctive Syllogism) is valid — no counterexample exists.'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'Which pair of formulas are logically EQUIVALENT?',
+    options:[
+      'P → Q  and  Q → P',
+      'P → Q  and  ¬Q → ¬P',
+      '¬(P ∧ Q)  and  ¬P ∧ ¬Q',
+      'P ∨ Q  and  P ∧ Q'
+    ],
+    answer:1,
+    explain:'P → Q is equivalent to its contrapositive ¬Q → ¬P — they always have the same truth value. Option A is the converse (not equivalent). Option C confuses De Morgan\'s law — ¬(P∧Q) = ¬P∨¬Q, not ¬P∧¬Q.'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'Formula: ¬(P → Q) — under what conditions is this true?',
+    options:[
+      'When P is false',
+      'When Q is true',
+      'When P is true and Q is false',
+      'When P is false and Q is false'
+    ],
+    answer:2,
+    explain:'¬(P→Q) is true exactly when P→Q is false. And P→Q is only false when P=T, Q=F. So ¬(P→Q) is true only when P=T and Q=F. This is equivalent to P ∧ ¬Q.'
+  }
+],
+
+// ── WORLD 3: Truth Trees ──────────────────
+[
+  {
+    type:'mc', diff:'Easy',
+    text:'When does a branch in a truth tree CLOSE?',
+    options:[
+      'When all formulas have been decomposed',
+      'When the branch contains both P and ¬P for some sentence letter',
+      'When the branch has more than 5 formulas',
+      'When a disjunction is decomposed'
+    ],
+    answer:1,
+    explain:'A branch closes (marked ✗) when it contains a contradiction: both an atomic sentence P and its negation ¬P. This means the branch represents an impossible scenario.'
+  },
+  {
+    type:'mc', diff:'Easy',
+    text:'When you decompose P ∧ Q in a truth tree, what happens?',
+    options:[
+      'The branch splits into two: P on left, Q on right',
+      'P and Q are both written on the SAME branch (no split)',
+      'You write P on the branch and discard Q',
+      'The branch closes'
+    ],
+    answer:1,
+    explain:'Conjunction (AND) is a non-branching rule — both P and Q must be true, so you add them both to the same branch. No split.'
+  },
+  {
+    type:'mc', diff:'Easy',
+    text:'What do you put in the truth tree to test if an argument is VALID?',
+    options:[
+      'Just the conclusion',
+      'All the premises',
+      'All the premises AND the negation of the conclusion',
+      'The negation of all the premises'
+    ],
+    answer:2,
+    explain:'To test validity, you assume the premises are true AND the conclusion is false (negation of conclusion). If all branches close, that assumption leads to contradiction — meaning the argument IS valid.'
+  },
+  {
+    type:'mc', diff:'Medium',
+    text:'You decompose P → Q in a truth tree. What do you get?',
+    options:[
+      'Branch splits: P on left, Q on right',
+      'Branch splits: ¬P on left, Q on right',
+      'Both P and ¬Q on the same branch',
+      'Branch splits: P on left, ¬Q on right'
+    ],
+    answer:1,
+    explain:'The conditional P → Q is equivalent to ¬P ∨ Q. So like a disjunction, it branches: ¬P on the left branch, Q on the right branch.'
+  },
+  {
+    type:'mc', diff:'Medium',
+    text:'You decompose ¬(P → Q) in a truth tree. What do you get?',
+    options:[
+      'Branch splits: ¬P left, ¬Q right',
+      'Branch splits: P left, Q right',
+      'Same branch: P and ¬Q (no split)',
+      'Same branch: ¬P and Q (no split)'
+    ],
+    answer:2,
+    explain:'¬(P → Q) is true only when P is true AND Q is false (the one case where the conditional fails). So: P and ¬Q are both written on the same branch — it\'s a non-branching rule.'
+  },
+  {
+    type:'mc', diff:'Medium',
+    text:'A truth tree for an argument has ONE branch, and it stays OPEN after full decomposition. What does this tell you?',
+    options:[
+      'The argument is valid',
+      'The argument is invalid — the open branch gives a counterexample',
+      'You made an error — trees always close',
+      'The premises are contradictory'
+    ],
+    answer:1,
+    explain:'An open branch represents a possible scenario (truth assignment) where all the formulas on it can be true simultaneously. Since we put premises + ¬conclusion in the tree, an open branch means: premises can be true while conclusion is false — INVALID.'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'Tree test for: P ∨ Q, P → R, Q → R ∴ R. You start with {P∨Q, P→R, Q→R, ¬R}. Decompose P→R (with ¬R on branch). Left branch gets ¬P. What happens next on the LEFT branch?',
+    options:[
+      'Left branch closes because ¬P contradicts something',
+      'We now decompose P∨Q: left branch adds P, which with ¬P closes it ✗',
+      'We decompose Q→R on the left branch',
+      'The left branch stays open'
+    ],
+    answer:1,
+    explain:'After getting ¬P on the left, we decompose P∨Q: left sub-branch gets P, right sub-branch gets Q. Left sub-branch now has both P and ¬P → CLOSES ✗. We continue with Q on right, then decompose Q→R to get ¬Q (closes with Q) ✗ or R (closes with ¬R) ✗. All close → VALID!'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'Decomposing ¬(P ↔ Q) gives:',
+    options:[
+      'Same branch: P and Q',
+      'Same branch: ¬P and ¬Q',
+      'Branch splits: (P, ¬Q) on left; (¬P, Q) on right',
+      'Branch splits: (P, Q) on left; (¬P, ¬Q) on right'
+    ],
+    answer:2,
+    explain:'¬(P↔Q) means P and Q DIFFER in truth value. Either P is true and Q is false (left branch), or P is false and Q is true (right branch). This is the negated biconditional rule.'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'You want to prove that P → Q and ¬Q → ¬P are logically equivalent using a tree. What do you put in the tree?',
+    options:[
+      '¬(P → Q) and (¬Q → ¬P)',
+      '¬((P → Q) ↔ (¬Q → ¬P))',
+      '(P → Q) and ¬(¬Q → ¬P)',
+      'Just (P → Q) and (¬Q → ¬P)'
+    ],
+    answer:1,
+    explain:'To prove logical equivalence, you test whether their biconditional is a tautology — equivalent to showing its negation is a contradiction. So put ¬((P→Q) ↔ (¬Q→¬P)) in the tree. If all branches close, they\'re equivalent.'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'Which of these is the correct decomposition of P ↔ Q?',
+    options:[
+      'Branch splits: (P→Q) left, (Q→P) right',
+      'Branch splits: (P,Q) left; (¬P,¬Q) right',
+      'Same branch: P and Q',
+      'Branch splits: (P,¬Q) left; (¬P,Q) right'
+    ],
+    answer:1,
+    explain:'P↔Q means P and Q have the SAME truth value. Either both true (left: P and Q) or both false (right: ¬P and ¬Q). Option D is the decomposition for ¬(P↔Q).'
+  }
+],
+
+// ── WORLD 4: Exam Gauntlet ─────────────────
+[
+  {
+    type:'mc', diff:'Hard',
+    text:'Is this argument valid? P → (Q → R), P → Q ∴ P → R',
+    options:[
+      'Invalid — counterexample: P=T, Q=T, R=F',
+      'Valid — this is a form of Hypothetical Syllogism',
+      'Invalid — counterexample: P=F, Q=T, R=F',
+      'Valid — but only if P is true'
+    ],
+    answer:1,
+    explain:'This IS valid. Given P→(Q→R) and P→Q: if P is true, then Q is true (from premise 2), and Q→R is true (from premise 1 with P true), so R must be true. If P is false, P→R is vacuously true. Valid in all cases.'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'Which of these sets of sentences is INCONSISTENT?',
+    options:[
+      '{P → Q, P, ¬Q}',
+      '{P ∨ Q, ¬P, ¬Q, R}',
+      '{P ↔ Q, P, ¬Q}',
+      'Both A and C'
+    ],
+    answer:3,
+    explain:'Set A: P→Q with P gives Q (modus ponens), but ¬Q contradicts Q → INCONSISTENT. Set C: P↔Q with P gives Q, but ¬Q contradicts Q → INCONSISTENT. Set B: ¬P and ¬Q make P∨Q false, but R can be anything → also inconsistent (P∨Q fails with ¬P,¬Q). Actually all three are inconsistent! But D says "both A and C."'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'What does it mean for sentence P to ENTAIL sentence Q?',
+    options:[
+      'P and Q are logically equivalent',
+      'Every possible truth assignment making P true also makes Q true',
+      'P and Q are both tautologies',
+      'Q → P is a tautology'
+    ],
+    answer:1,
+    explain:'P entails Q means: in every row where P is true, Q is also true. Note this doesn\'t require the reverse — Q can be true even when P is false. Equivalence is mutual entailment.'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'Identify the fallacy: "If it rains, the grass is wet. The grass is wet. Therefore, it rained."',
+    options:[
+      'Modus Ponens — this is actually valid',
+      'Modus Tollens',
+      'Affirming the Consequent — INVALID',
+      'Denying the Antecedent — INVALID'
+    ],
+    answer:2,
+    explain:'R→W, W ∴ R is Affirming the Consequent — invalid. The grass could be wet for other reasons (sprinklers, dew). Just because W is true doesn\'t mean R caused it. Counterexample: R=F, W=T.'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'Which formula is logically equivalent to ¬(P ∨ Q) → R?',
+    options:[
+      '(¬P ∧ ¬Q) → R',
+      '¬P → (¬Q → R)',
+      '¬R → (P ∨ Q)',
+      'Both A and C'
+    ],
+    answer:3,
+    explain:'A: By De Morgan\'s, ¬(P∨Q) = ¬P∧¬Q, so ¬(P∨Q)→R = (¬P∧¬Q)→R ✓. C: The contrapositive of the original is ¬R→¬¬(P∨Q) = ¬R→(P∨Q) ✓. Both are equivalent to the original!'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'A truth tree for {P→Q, ¬P→Q} has all branches close. What can you conclude?',
+    options:[
+      'P → Q and ¬P → Q are contradictory',
+      'The set is unsatisfiable',
+      'The set is satisfiable — closing means valid',
+      'Q must be a tautology given these premises'
+    ],
+    answer:1,
+    explain:'Wait — if we put {P→Q, ¬P→Q} in a tree to test satisfiability and all branches close, the set is UNSATISFIABLE. But actually these CAN both be true when Q is true! The set IS satisfiable. So if a tree closes, it confirms unsatisfiability — but here the tree shouldn\'t fully close.'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'Using De Morgan\'s law, ¬(P ∧ ¬Q) is equivalent to:',
+    options:['¬P ∧ Q','¬P ∨ Q','¬P ∨ ¬Q','P ∧ Q'],
+    answer:1,
+    explain:'De Morgan\'s: ¬(A ∧ B) = ¬A ∨ ¬B. Here A=P, B=¬Q. So ¬(P ∧ ¬Q) = ¬P ∨ ¬(¬Q) = ¬P ∨ Q.'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'Which argument form is VALID?',
+    options:[
+      'P → Q, Q ∴ P (Affirming Consequent)',
+      'P → Q, ¬P ∴ ¬Q (Denying Antecedent)',
+      'P ∨ Q, Q ∴ ¬P (invalid disjunctive)',
+      'P → Q, Q → R, ¬R ∴ ¬P (chain modus tollens)'
+    ],
+    answer:3,
+    explain:'Option D is valid: from Q→R and ¬R, by Modus Tollens we get ¬Q. Then from P→Q and ¬Q, by Modus Tollens again we get ¬P. This is a chain of MT. Options A and B are the classic fallacies.'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'Sentence S is a tautology. Sentence T is contingent. What can you conclude about S ∧ T?',
+    options:[
+      'S ∧ T is a tautology',
+      'S ∧ T is a contradiction',
+      'S ∧ T is contingent',
+      'S ∧ T is logically equivalent to S'
+    ],
+    answer:2,
+    explain:'Since S is always true, S∧T has the same truth value as T alone. Since T is contingent (sometimes true, sometimes false), S∧T is also contingent. You could also say S∧T is logically equivalent to T.'
+  },
+  {
+    type:'mc', diff:'Hard',
+    text:'Which correctly describes the relationship between VALIDITY and SOUNDNESS?',
+    options:[
+      'All sound arguments are valid, but not all valid arguments are sound',
+      'All valid arguments are sound, but not all sound arguments are valid',
+      'Validity and soundness are the same thing',
+      'A sound argument can have a false conclusion'
+    ],
+    answer:0,
+    explain:'Soundness requires BOTH validity AND true premises. So every sound argument must be valid (otherwise it wouldn\'t be sound). But valid arguments can have false premises — those are valid but not sound. A sound argument always has a true conclusion.'
+  }
+]
+
+]; // end questionBanks
+
+// ═══════════════════════════════════════════
+// RENDER HOME
+// ═══════════════════════════════════════════
+function renderHome() {
+  const grid = document.getElementById('worldGrid');
+  grid.innerHTML = '';
+  worlds.forEach((w, i) => {
+    const unlocked = i === 0 || state.worldProgress[i-1];
+    const done = state.worldProgress[i];
+    const bestPct = state.worldBestPct[i];
+    const hintsUsed = state.worldHints[i];
+    const card = document.createElement('div');
+    card.className = 'world-card' + (unlocked ? '' : ' locked');
+    if(unlocked) card.onclick = () => startWorld(i);
+
+    let statusClass = done ? 'status-done' : unlocked ? 'status-play' : 'status-locked';
+    let statusText  = done ? `✓ BEST: ${bestPct}%` : unlocked ? '▶ PLAY' : '🔒 LOCKED';
+    let aplBadge    = (done && hintsUsed === 0) ? '<span class="world-aplus">A+</span>' : '';
+
+    card.innerHTML = `
+      ${aplBadge}
+      <div class="world-num">WORLD ${i+1}</div>
+      <div class="world-icon">${w.icon}</div>
+      <div class="world-title" style="color:${w.color}">${w.title}</div>
+      <div class="world-desc">${w.desc}</div>
+      <div class="world-status ${statusClass}">${statusText}</div>`;
+    grid.appendChild(card);
+  });
+
+  document.getElementById('totalXP').textContent = state.xp;
+  document.getElementById('bestStreak').textContent = state.bestStreak;
+  document.getElementById('completedCount').textContent = state.worldProgress.filter(Boolean).length;
+
+  // Render A+ banner
+  renderAPlusBanner();
+}
+
+function renderAPlusBanner() {
+  // Insert before world grid if not already there
+  let banner = document.getElementById('aplusBanner');
+  if(!banner) {
+    banner = document.createElement('div');
+    banner.id = 'aplusBanner';
+    banner.className = 'aplus-banner';
+    const grid = document.getElementById('worldGrid');
+    grid.parentNode.insertBefore(banner, grid);
+  }
+
+  const grade = computeGrade(state);
+  const met = APLUS_REQUIREMENTS.filter(r => r.check(state)).length;
+  const total = APLUS_REQUIREMENTS.length;
+  const lt = state.lifetime;
+  const allTotal = lt.easyTotal + lt.medTotal + lt.hardTotal;
+  const allCorrect = lt.easyCorrect + lt.medCorrect + lt.hardCorrect;
+  const overallAcc = allTotal > 0 ? Math.round((allCorrect/allTotal)*100) : 0;
+  const hardAcc = lt.hardTotal > 0 ? Math.round((lt.hardCorrect/lt.hardTotal)*100) : 0;
+  const avgTime = state.lifetime.recentTimes.length > 0 ? Math.round(avg(state.lifetime.recentTimes)) : '—';
+
+  const gradeClass = `grade-${grade.replace('+','plus')}`;
+
+  banner.innerHTML = `
+    <div class="aplus-grade ${gradeClass}">${grade}</div>
+    <div class="aplus-info">
+      <div class="aplus-title">Current Grade: ${grade}</div>
+      <div class="aplus-subtitle">${met}/${total} A+ requirements met · <span style="cursor:pointer;text-decoration:underline;color:var(--accent);" onclick="showCert()">View full report →</span></div>
+    </div>
+    <div class="aplus-bars">
+      <div class="abar">
+        <div class="abar-label"><span>Overall Accuracy</span><span>${overallAcc}%</span></div>
+        <div class="abar-track"><div class="abar-fill" style="width:${overallAcc}%;background:${overallAcc>=88?'var(--green)':overallAcc>=72?'var(--gold)':'var(--red)'}"></div></div>
+      </div>
+      <div class="abar">
+        <div class="abar-label"><span>Hard Qs Accuracy</span><span>${hardAcc}%</span></div>
+        <div class="abar-track"><div class="abar-fill" style="width:${hardAcc}%;background:${hardAcc>=85?'var(--green)':hardAcc>=65?'var(--gold)':'var(--red)'}"></div></div>
+      </div>
+      <div class="abar">
+        <div class="abar-label"><span>A+ Requirements</span><span>${met}/${total}</span></div>
+        <div class="abar-track"><div class="abar-fill" style="width:${(met/total)*100}%;background:var(--accent)"></div></div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════
+// WORLD START
+// ═══════════════════════════════════════════
+function startWorld(worldIdx) {
+  state.currentWorld = worldIdx;
+  state.currentQ = 0;
+  state.correct = 0;
+  state.lives = 3;
+  state.streak = 0;
+  state.hintsThisRun = 0;
+  state.hintUsedThisQ = false;
+  state.answered = false;
+  state.midLessonShown = false;
+  clearInterval(state.timer);
+  state.questions = shuffle([...questionBanks[worldIdx]]);
+  document.getElementById('gameTitle').textContent = `World ${worldIdx+1}: ${worlds[worldIdx].title}`;
+  document.getElementById('gameXP').textContent = state.xp;
+  showScreen('game');
+  // Show story intro for this world
+  triggerStory('world_start_' + worldIdx, () => renderQuestion());
+}
+
+function shuffle(arr) {
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+// ═══════════════════════════════════════════
+// RENDER QUESTION
+// ═══════════════════════════════════════════
+function renderQuestion() {
+  const q = state.questions[state.currentQ];
+  const total = state.questions.length;
+  state.answered = false;
+  state.hintUsedThisQ = false;
+  state.qStartTime = Date.now();
+
+  // Progress
+  document.getElementById('qMeta').textContent = `Question ${state.currentQ+1} of ${total}`;
+  document.getElementById('qDiff').textContent = q.diff;
+  document.getElementById('progressFill').style.width = `${(state.currentQ/total)*100}%`;
+
+  // Lives & streak
+  document.getElementById('livesDisplay').textContent = '❤️'.repeat(state.lives) + '🖤'.repeat(3-state.lives);
+  document.getElementById('streakDisplay').textContent = state.streak;
+
+  // Card
+  document.getElementById('qTypeTag').textContent = 'MULTIPLE CHOICE';
+  document.getElementById('qText').textContent = q.text;
+
+  const formulaEl = document.getElementById('qFormula');
+  if(q.formula){ formulaEl.style.display='block'; formulaEl.textContent=q.formula; }
+  else { formulaEl.style.display='none'; }
+  document.getElementById('qHint').textContent = '';
+
+  // Hint button
+  const hb = document.getElementById('hintBtn');
+  hb.className = 'hint-btn';
+  hb.innerHTML = '💡 Hint <span class="hint-cost">(-5 pts)</span>';
+
+  // Answer area
+  const area = document.getElementById('answerArea');
+  area.innerHTML = '';
+  const optDiv = document.createElement('div');
+  optDiv.className = 'options';
+  const letters = ['A','B','C','D'];
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.innerHTML = `<span class="opt-letter">${letters[i]}</span>${opt}`;
+    btn.onclick = () => checkMC(i, q, btn, optDiv);
+    optDiv.appendChild(btn);
+  });
+  area.appendChild(optDiv);
+
+  // Hide feedback & next
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('feedback').innerHTML = '';
+  document.getElementById('nextBtn').className = 'next-btn';
+  hideGuessBar();
+
+  // Start timer
+  startTimer(q);
+}
+
+// ─── TIMER ───────────────────────────────
+function startTimer(q) {
+  clearInterval(state.timer);
+  const timeLimit = q.diff === 'Hard' ? 45 : q.diff === 'Medium' ? 35 : 25;
+  state.timeLeft = timeLimit;
+  updateTimerUI(timeLimit, timeLimit);
+
+  state.timer = setInterval(() => {
+    state.timeLeft--;
+    updateTimerUI(state.timeLeft, timeLimit);
+    if(state.timeLeft <= 0) {
+      clearInterval(state.timer);
+      if(!state.answered) timeOut(q);
+    }
+  }, 1000);
+}
+
+function updateTimerUI(left, total) {
+  const num = document.getElementById('timerNum');
+  const fill = document.getElementById('ringFill');
+  if(!num) return;
+  num.textContent = left;
+  const circ = 113;
+  const offset = circ - (left / total) * circ;
+  fill.style.strokeDashoffset = offset;
+  const pct = left / total;
+  fill.style.stroke = pct > 0.5 ? 'var(--accent)' : pct > 0.25 ? 'var(--gold)' : 'var(--red)';
+  num.style.color = pct > 0.25 ? 'var(--text)' : 'var(--red)';
+}
+
+function timeOut(q) {
+  if(state.answered) return;
+  state.answered = true;
+  state.streak = 0;
+  state.lives--;
+  document.getElementById('livesDisplay').textContent = '❤️'.repeat(Math.max(0,state.lives)) + '🖤'.repeat(3-Math.max(0,state.lives));
+
+  // Record time (max)
+  recordTime(45);
+
+  const area = document.getElementById('answerArea');
+  const opts = area.querySelectorAll('.opt');
+  opts.forEach(o => o.classList.add('disabled'));
+  if(opts[q.answer]) opts[q.answer].classList.add('reveal');
+
+  // Track lifetime accuracy
+  if(q.diff==='Easy'){ state.lifetime.easyTotal++; }
+  else if(q.diff==='Medium'){ state.lifetime.medTotal++; }
+  else { state.lifetime.hardTotal++; }
+
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback show wrong-fb fb-wrong';
+  fb.innerHTML = `<div class="fb-title">⏱ Time's up!</div><div class="fb-explain">${q.explain}</div>`;
+  document.getElementById('nextBtn').classList.add('show');
+
+  if(state.lives <= 0){ setTimeout(() => endWorld(), 1800); }
+}
+
+// ─── HINT ─────────────────────────────────
+function useHint() {
+  if(state.answered || state.hintUsedThisQ) return;
+  const q = state.questions[state.currentQ];
+  if(!q.hint && !q.explain) return;
+
+  state.hintUsedThisQ = true;
+  state.hintsThisRun++;
+  state.xp = Math.max(0, state.xp - 5);
+  document.getElementById('gameXP').textContent = state.xp;
+
+  const hb = document.getElementById('hintBtn');
+  hb.className = 'hint-btn used';
+  hb.innerHTML = '💡 Hint used <span class="hint-cost">(−5 pts deducted)</span>';
+
+  // Flash penalty
+  document.getElementById('qCard').classList.add('penalty-flash');
+  setTimeout(() => document.getElementById('qCard').classList.remove('penalty-flash'), 400);
+
+  // Show a partial hint (first sentence of explanation)
+  const hintText = q.hint || q.explain.split('.')[0] + '.';
+  document.getElementById('qHint').textContent = '💡 ' + hintText;
+}
+
+function recordTime(secs) {
+  state.lifetime.recentTimes.push(secs);
+  if(state.lifetime.recentTimes.length > 20) state.lifetime.recentTimes.shift();
+}
+
+// ═══════════════════════════════════════════
+// CHECK ANSWER
+// ═══════════════════════════════════════════
+function checkMC(chosen, q, btn, container) {
+  if(state.answered) return;
+  state.answered = true;
+  clearInterval(state.timer);
+
+  // Record response time
+  const elapsed = Math.min(60, Math.round((Date.now() - state.qStartTime) / 1000));
+  recordTime(elapsed);
+
+  const opts = container.querySelectorAll('.opt');
+  opts.forEach(o => o.classList.add('disabled'));
+
+  const correct = chosen === q.answer;
+
+  // Track lifetime stats
+  if(q.diff==='Easy'){   state.lifetime.easyTotal++;   if(correct) state.lifetime.easyCorrect++;   }
+  else if(q.diff==='Medium'){ state.lifetime.medTotal++;  if(correct) state.lifetime.medCorrect++;  }
+  else {                 state.lifetime.hardTotal++;  if(correct) state.lifetime.hardCorrect++; }
+
+  if(correct) {
+    btn.classList.add('correct');
+    state.correct++;
+    state.streak++;
+    if(state.streak > state.bestStreak) state.bestStreak = state.streak;
+
+    // XP: base + streak bonus + speed bonus + no-hint bonus
+    let xpGain = q.diff === 'Easy' ? 10 : q.diff === 'Medium' ? 15 : 20;
+    if(state.streak >= 5) xpGain += 10;
+    else if(state.streak >= 3) xpGain += 5;
+    if(elapsed <= 10) xpGain += 5;   // speed bonus
+    if(!state.hintUsedThisQ) xpGain += 2; // no-hint bonus
+
+    state.xp += xpGain;
+    document.getElementById('gameXP').textContent = state.xp;
+    showXPPop(`+${xpGain} XP`);
+    if(state.streak >= 3) showStreakBanner();
+    showFeedback(true, q);
+    showGuessBar();
+  } else {
+    btn.classList.add('wrong');
+    opts[q.answer].classList.add('reveal');
+    hideGuessBar();
+    state.streak = 0;
+    state.lives--;
+    document.getElementById('livesDisplay').textContent = '❤️'.repeat(Math.max(0,state.lives)) + '🖤'.repeat(3-Math.max(0,state.lives));
+    showFeedback(false, q);
+    lyraOfferHelp(q); // pulse Lyra button on wrong answer
+    if(state.lives <= 0) { setTimeout(() => endWorld(), 2000); return; }
+  }
+
+  document.getElementById('nextBtn').classList.add('show');
+}
+
+function showFeedback(correct, q) {
+  const fb = document.getElementById('feedback');
+  fb.className = `feedback show ${correct ? 'correct-fb fb-correct' : 'wrong-fb fb-wrong'}`;
+  fb.innerHTML = `
+    <div class="fb-title">${correct ? '✓ Correct!' : '✗ Not quite'}</div>
+    <div class="fb-explain">${q.explain}</div>`;
+}
+
+function nextQuestion() {
+  state.currentQ++;
+  // Check for mid-world Napoleon Hill lesson interrupt
+  const w = worlds[state.currentWorld];
+  if(w.midLesson && state.currentQ === w.midLesson.after && !state.midLessonShown) {
+    state.midLessonShown = true;
+    showHillLesson(w.midLesson);
+    return;
+  }
+  if(state.currentQ >= state.questions.length) { endWorld(); }
+  else { renderQuestion(); }
+}
+
+function endWorld() {
+  clearInterval(state.timer);
+  const total = state.questions.length;
+  const pct = Math.round((state.correct / total) * 100);
+  const passed = state.correct >= worlds[state.currentWorld].passScore;
+
+  if(passed) {
+    state.worldProgress[state.currentWorld] = true;
+    if(pct > (state.worldBestPct[state.currentWorld]||0)) {
+      state.worldBestPct[state.currentWorld] = pct;
+    }
+    const prevHints = state.worldHints[state.currentWorld];
+    if(prevHints === 0 || state.hintsThisRun < prevHints) {
+      state.worldHints[state.currentWorld] = state.hintsThisRun;
+    }
+    // Trigger milestone story for key worlds
+    setTimeout(() => triggerStory('world_pass_' + state.currentWorld), 600);
+  }
+
+  const grade = computeGrade(state);
+  const circle = document.getElementById('resultCircle');
+  circle.style.background = `conic-gradient(${passed ? 'var(--green)' : 'var(--red)'} 0% ${pct}%, var(--border) ${pct}% 100%)`;
+
+  document.getElementById('resultScore').textContent = `${state.correct}/${total}`;
+
+  let titleText = passed
+    ? (pct===100?'🏆 Perfect!': pct>=90?'⭐ Outstanding!': pct>=80?'✅ Passed!':'✅ Passed')
+    : '💪 Not Yet';
+  document.getElementById('resultTitle').textContent = titleText;
+
+  // Show grade update and hints penalty
+  const hintNote = state.hintsThisRun > 0 ? ` You used ${state.hintsThisRun} hint${state.hintsThisRun>1?'s':''} — aim for 0 hints to unlock A+ on this world.` : ' No hints used — A+ eligible! 🌟';
+  const gradeNote = `Current grade: ${grade}.`;
+  document.getElementById('resultMsg').innerHTML = passed
+    ? `You scored ${pct}%. ${gradeNote}${hintNote} ${state.currentWorld < 4 ? 'Next world unlocked.' : ''}`
+    : `You need ${worlds[state.currentWorld].passScore}/${total} correct to pass. You scored ${pct}%. ${gradeNote} Review the material and try again!`;
+
+  // Show result actions with cert button if passed
+  const actions = document.querySelector('.result-actions');
+  actions.innerHTML = `
+    <button class="btn-primary" onclick="retryWorld()">Try Again</button>
+    <button class="btn-secondary" onclick="goHome()">Home</button>
+    ${passed ? '<button class="btn-secondary" style="border-color:var(--gold);color:var(--gold);" onclick="showCert()">📋 Report Card</button>' : ''}
+  `;
+
+  showScreen('results');
+}
+
+function retryWorld() { startWorld(state.currentWorld); }
+
+// ═══════════════════════════════════════════
+// CERTIFICATION REPORT
+// ═══════════════════════════════════════════
+function showCert() {
+  const s = state;
+  const grade = computeGrade(s);
+  const lt = s.lifetime;
+  const allTotal = lt.easyTotal + lt.medTotal + lt.hardTotal;
+  const allCorrect = lt.easyCorrect + lt.medCorrect + lt.hardCorrect;
+  const overallAcc = allTotal > 0 ? Math.round((allCorrect/allTotal)*100) : 0;
+  const easyAcc  = lt.easyTotal  > 0 ? Math.round((lt.easyCorrect /lt.easyTotal )*100) : '—';
+  const medAcc   = lt.medTotal   > 0 ? Math.round((lt.medCorrect  /lt.medTotal  )*100) : '—';
+  const hardAcc  = lt.hardTotal  > 0 ? Math.round((lt.hardCorrect /lt.hardTotal )*100) : '—';
+  const avgTime  = lt.recentTimes.length > 0 ? Math.round(avg(lt.recentTimes)) + 's' : '—';
+
+  const gradeColors = {'A+':'#ffd166','A':'#ffd166','B+':'#6ee7b7','B':'#6ee7b7','C+':'var(--accent)','C':'var(--accent)','D':'var(--muted)','F':'var(--red)'};
+  const gc = gradeColors[grade] || '#fff';
+
+  const advice = {
+    'A+': 'Outstanding! Your performance matches an A+ student. You are fully exam-ready.',
+    'A':  'Excellent work! A bit more consistency on Hard questions and hint-free runs will get you to A+.',
+    'B+': 'Strong performance. Focus on Hard accuracy and eliminating hints to break into A territory.',
+    'B':  'Good foundation. Push Hard accuracy above 85% and aim for zero-hint completions.',
+    'C+': 'Decent progress. Revisit truth tree rules and complex symbolization — those are likely weak spots.',
+    'C':  'More practice needed. Focus on Worlds 3 and 4, and drill De Morgan\'s Laws cold.',
+    'D':  'Keep going! Build a solid base in Worlds 1–2 before tackling trees.',
+    'F':  'Just getting started — that is fine! Work through each world slowly and use the feedback.'
+  };
+
+  const worldRows = worlds.map((w,i) => {
+    const done = s.worldProgress[i];
+    const pct  = s.worldBestPct[i] || 0;
+    const hints = s.worldHints[i] || 0;
+    const aplus = done && hints === 0;
+    return `<div class="cert-row">
+      <span class="cert-row-label">${w.icon} ${w.title}</span>
+      <span style="display:flex;gap:12px;align-items:center;">
+        ${aplus ? '<span style="font-size:11px;color:var(--gold);font-family:var(--display);font-weight:700;">A+</span>' : ''}
+        <span class="cert-row-val ${done?(pct>=90?'good':pct>=70?'ok':''):'bad'}">${done ? pct+'%' : 'Not passed'}</span>
+        <span style="font-family:var(--mono);font-size:11px;color:${hints===0&&done?'var(--green)':'var(--red)'};">${done?(hints===0?'✓ No hints':hints+' hint'+(hints>1?'s':'')):'—'}</span>
+      </span>
+    </div>`;
+  }).join('');
+
+  const reqRows = APLUS_REQUIREMENTS.map(r => {
+    const met = r.check(s);
+    return `<div class="req-item">
+      <div class="req-check ${met?'pass':'fail'}">${met?'✓':'✗'}</div>
+      <div class="req-text">${r.label}</div>
+      <div class="req-val" style="color:${met?'var(--green)':'var(--muted)'}">${met?'MET':'NEEDED'}</div>
+    </div>`;
+  }).join('');
+
+  const failedReqs = APLUS_REQUIREMENTS.filter(r => !r.check(s));
+  const tipMap = {
+    'all_worlds':   'Complete all 5 worlds — work through them in order.',
+    'no_hints_w4':  'Retry the Exam Gauntlet (World 5) without using any hints.',
+    'hard_acc':     'Drill Hard questions — focus on validity proofs, De Morgan\'s, and complex trees.',
+    'med_acc':      'Review Medium questions — especially symbolization traps like "only if" and "unless".',
+    'no_hint_pass': 'Replay earlier worlds and resist hitting the hint button.',
+    'speed':        'Practice recognizing patterns faster — flashcard the decomposition rules.',
+    'gauntlet_90':  'Score 90%+ on the Exam Gauntlet (World 5) — requires consistent Hard accuracy.',
+    'streak5':      'Build a 5-question streak — start with Easy worlds to get momentum.',
+  };
+  const studyTips = failedReqs.slice(0,4).map(r =>
+    `<div style="padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--muted);">→ ${tipMap[r.id]||r.label}</div>`
+  ).join('');
+
+  document.getElementById('certScroll').innerHTML = `
+    <div class="cert-header">
+      <div class="cert-grade-big" style="color:${gc}">${grade}</div>
+      <div class="cert-tagline">Phil 2170B Logic Quest · Performance Report</div>
+      <div style="font-size:14px;color:var(--muted);margin-top:8px;line-height:1.6;max-width:500px;margin-left:auto;margin-right:auto;">${advice[grade]}</div>
+    </div>
+
+    <div class="cert-card">
+      <div class="cert-card-title">OVERALL STATS</div>
+      <div class="cert-row"><span class="cert-row-label">Overall Accuracy</span><span class="cert-row-val ${overallAcc>=88?'good':overallAcc>=72?'ok':'bad'}">${overallAcc}%</span></div>
+      <div class="cert-row"><span class="cert-row-label">Easy Questions</span><span class="cert-row-val ${easyAcc>=90?'good':''}">${easyAcc}${easyAcc!=='—'?'%':''} <span style="font-size:11px;color:var(--muted)">(${lt.easyCorrect}/${lt.easyTotal})</span></span></div>
+      <div class="cert-row"><span class="cert-row-label">Medium Questions</span><span class="cert-row-val ${medAcc>=90?'good':medAcc>=75?'ok':'bad'}">${medAcc}${medAcc!=='—'?'%':''} <span style="font-size:11px;color:var(--muted)">(${lt.medCorrect}/${lt.medTotal})</span></span></div>
+      <div class="cert-row"><span class="cert-row-label">Hard Questions</span><span class="cert-row-val ${hardAcc>=85?'good':hardAcc>=70?'ok':'bad'}">${hardAcc}${hardAcc!=='—'?'%':''} <span style="font-size:11px;color:var(--muted)">(${lt.hardCorrect}/${lt.hardTotal})</span></span></div>
+      <div class="cert-row"><span class="cert-row-label">Avg Answer Time</span><span class="cert-row-val ${avgTime!=='—'&&parseInt(avgTime)<=25?'good':''}">${avgTime} <span style="font-size:11px;color:var(--muted)">(target ≤ 25s)</span></span></div>
+      <div class="cert-row"><span class="cert-row-label">Best Streak</span><span class="cert-row-val ${s.bestStreak>=5?'good':s.bestStreak>=3?'ok':'bad'}">${s.bestStreak} 🔥 <span style="font-size:11px;color:var(--muted)">(need 5 for A+)</span></span></div>
+      <div class="cert-row"><span class="cert-row-label">Total XP</span><span class="cert-row-val ok">⚡ ${s.xp}</span></div>
+      <div class="cert-row"><span class="cert-row-label">🎲 Lucky Guesses Flagged</span><span class="cert-row-val ${s.guesses.lucky===0?'good':s.guesses.lucky<=3?'ok':'bad'}">${s.guesses.lucky} <span style="font-size:11px;color:var(--muted)">(marked by you)</span></span></div>
+      <div class="cert-row"><span class="cert-row-label">✓ Confirmed Known</span><span class="cert-row-val good">${s.guesses.knew}</span></div>
+    </div>
+
+    <div class="cert-card">
+      <div class="cert-card-title">WORLD PERFORMANCE</div>
+      ${worldRows}
+    </div>
+
+    <div class="cert-card">
+      <div class="cert-card-title">A+ REQUIREMENTS — ${APLUS_REQUIREMENTS.filter(r=>r.check(s)).length}/${APLUS_REQUIREMENTS.length} MET</div>
+      ${reqRows}
+    </div>
+
+    ${failedReqs.length > 0 ? `<div class="cert-card">
+      <div class="cert-card-title">FOCUS AREAS TO REACH A+</div>
+      ${studyTips}
+    </div>` : `<div class="cert-card" style="text-align:center;padding:40px;">
+      <div style="font-size:48px;margin-bottom:12px;">🏆</div>
+      <div style="font-family:var(--display);font-size:22px;color:var(--gold);margin-bottom:8px;">All A+ Requirements Met!</div>
+      <div style="color:var(--muted);font-size:14px;">You are fully exam-ready. Go get that A+.</div>
+    </div>`}
+
+    <div style="text-align:center;padding:24px 0 8px;">
+      <button class="btn-primary" onclick="goHome()">← Back to Home</button>
+    </div>`;
+
+  showScreen('cert');
+}
+
+// ═══════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(name).classList.add('active');
+  if(name === 'home') renderHome();
+  window.scrollTo(0,0);
+}
+
+function goHome() { showScreen('home'); }
+
+function showFeedback(correct, q) {
+  const fb = document.getElementById('feedback');
+  fb.className = `feedback show ${correct ? 'correct-fb fb-correct' : 'wrong-fb fb-wrong'}`;
+  fb.innerHTML = `
+    <div class="fb-title">${correct ? '✓ Correct!' : '✗ Not quite'}</div>
+    <div class="fb-explain">${q.explain}</div>`;
+}
+
+function showXPPop(text) {
+  const el = document.getElementById('xpPop');
+  el.textContent = text;
+  el.className = 'xp-pop show';
+  setTimeout(() => { el.className = 'xp-pop hide'; setTimeout(() => el.className='xp-pop', 400); }, 900);
+}
+
+function showStreakBanner() {
+  const el = document.getElementById('streakBanner');
+  el.textContent = `🔥 ${state.streak}x Streak!`;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ═══════════════════════════════════════════
+// STORY ENGINE
+// ═══════════════════════════════════════════
+const STORY = [
+  {
+    trigger: 'world_start_0',
+    chapter: 'THE FIRST LAW', scene: '🔥', title: 'Burning Desire — The Starting Point of All Achievement',
+    text: `In 1908, steel magnate <em>Andrew Carnegie</em> gave a young journalist named Napoleon Hill a single assignment that would take 20 years to complete: interview the 500 most successful people in America and find the common formula for wealth.<br><br>Carnegie told Hill: <em>"Whatever the mind can conceive and believe, it can achieve."</em><br><br>What Hill found after 500 interviews — Ford, Edison, Rockefeller, Schwab — was that every single one of them shared ONE thing before anything else: a <em>burning, white-hot, obsessive desire</em>. Not a wish. Not a hope. A DECISION.<br><br>You are now beginning that same 20-year journey — compressed into one exam prep session. Every question you answer correctly is a law of success being burned into your mind. Every wrong answer is a lesson Carnegie would have made you repeat until you got it right.<br><br><strong>The quest begins. Master the language of logic — and Hill's laws will follow.</strong>`
+  },
+  {
+    trigger: 'world_start_1',
+    chapter: 'THE SECOND LAW', scene: '🧠', title: 'Faith & Autosuggestion — Programming the Subconscious',
+    text: `<em>Henry Ford</em> decided he wanted a V8 engine cast as a single block. His engineers told him it was physically impossible. Ford said: <em>"Produce it anyway."</em><br><br>They tried for a year. Failed. Ford said: <em>"Stay on the job regardless of time required."</em> Six months later — they produced it.<br><br>Hill called this <strong>Faith</strong>: the visualization of what you want so completely, so repeatedly, that your subconscious mind accepts it as already done and begins solving for it automatically. Ford used <strong>Autosuggestion</strong> — he spoke his goals aloud, daily, with emotion. He literally reprogrammed his mind.<br><br>Symbolization is the same skill: taking vague, ambiguous language and making it <em>precise and unambiguous</em>. Ford didn't say "I want a good engine." He said exactly what he wanted. "Only if" means exactly one thing in logic — just as Ford's V8 specs were exact.<br><br><strong>Be precise. Be relentless. Program yourself to win.</strong>`
+  },
+  {
+    trigger: 'world_start_2',
+    chapter: 'THE FOURTH LAW', scene: '💡', title: 'Specialized Knowledge — Edison\'s 10,000 Attempts',
+    text: `A reporter asked <em>Thomas Edison</em> how it felt to have failed 10,000 times inventing the lightbulb. Edison replied: <em>"I have not failed. I've just found 10,000 ways that won't work."</em><br><br>Hill's Fourth Law is <strong>Specialized Knowledge</strong>. Not general education — specific, deep mastery of one domain, applied toward a definite purpose. Edison didn't know everything. He knew his domain cold and tested every possibility systematically until the only remaining option was success.<br><br>A truth table is Edison's method in pure form: test every possible row, eliminate what's false, and what remains must be true. Every wrong answer you get in this game is a row you've eliminated. Every correct one narrows the gap.<br><br>Rockefeller used specialized knowledge of oil. Carnegie used it for steel. Bezos used it for logistics. You are building specialized knowledge of symbolic logic right now — one row at a time.<br><br><strong>The question is whether you learn from every wrong row, or just skip past it.</strong>`
+  },
+  {
+    trigger: 'world_start_3',
+    chapter: 'THE NINTH LAW', scene: '🤝', title: 'The Mastermind Alliance — Two Minds Are Greater Than One',
+    text: `<em>Carnegie</em> never claimed to know everything about steel. What he knew was how to surround himself with people who did. He called it his <strong>Mastermind Alliance</strong> — a group of brilliant, aligned minds working toward one purpose.<br><br>Hill observed this principle in every great fortune: Ford had his engineering team. Rockefeller had his board of advisors. Every major deal on Wall Street happens between aligned minds, not lone wolves.<br><br>But Hill went further. He revealed his most extraordinary habit: every night before sleep he held imaginary "meetings" with nine historical figures — Lincoln, Edison, Ford, Carnegie, Napoleon Bonaparte, Darwin. He asked each one questions. Lincoln on integrity. Carnegie on persistence. Edison on creativity. He called them his <strong>Invisible Counselors</strong>.<br><br>Truth trees branch like a mastermind session — every path explored, every contradiction eliminated, only the valid paths surviving.<br><br><strong>Who are YOUR invisible counselors? Who are you becoming?</strong>`
+  },
+  {
+    trigger: 'world_start_4',
+    chapter: 'THE EIGHTH LAW', scene: '⛏️', title: 'Persistence — Three Feet From Gold',
+    text: `One of Hill's most famous stories: <em>R.U. Darby</em> and his uncle struck gold during the gold rush. They drilled a rich vein, borrowed money, bought equipment, and started mining. Then the vein disappeared. They drilled everywhere. Nothing. They quit — and sold all the equipment to a junkman for a few hundred dollars.<br><br>The junkman hired a mining engineer who calculated the vein was <em>three feet from where Darby had stopped drilling</em>. The junkman made millions.<br><br>Darby went on to become one of the most successful insurance salespeople in America — because that failure burned one principle into him permanently: <strong>NEVER QUIT.</strong><br><br>This is the Gauntlet. The questions get harder from here. The truth trees get deeper. Most students sell their equipment at this exact moment.<br><br>You are three feet from gold. The exam is close. Every question you push through right now is one more foot drilled past where Darby stopped.<br><br><strong>Do not sell your equipment.</strong>`
+  },
+  {
+    trigger: 'world_pass_0',
+    chapter: 'MILESTONE — LAW 1 EARNED', scene: '🔥', title: 'You Have Definiteness of Purpose',
+    text: `Carnegie told Hill: <em>"The man who has no definite chief aim in life is like a ship without a rudder — subject to be stranded on any rock in the sea."</em><br><br>You just demonstrated definiteness of purpose. You showed up, you focused, you pushed through. That is Law 1 in action — not as a concept, but as a behavior you just performed.<br><br>Every successful person Hill studied had this: they didn't dabble. They committed. Schwab committed to steel. Ford committed to the automobile. You committed to this exam.<br><br><strong>Next: Ford's secret. The mind can be programmed. Let's go program yours.</strong>`
+  },
+  {
+    trigger: 'world_pass_2',
+    chapter: 'MILESTONE — HALFWAY', scene: '📈', title: 'Rockefeller\'s Compound Interest',
+    text: `<em>John D. Rockefeller</em> became the world's first billionaire through one principle above all: <strong>compound interest</strong> — not just financially, but intellectually.<br><br>He said: <em>"I would rather earn 1% off 100 people's efforts than 100% of my own effort."</em> That's the mastermind in financial form.<br><br>You are now past the halfway point. Three worlds mastered. The knowledge you've built is compounding — terms built the foundation for symbolization, symbolization enabled truth tables, truth tables make truth trees comprehensible.<br><br>This is how real wealth is built. Not in one big score. In systematically compounding one discipline into the next, each one multiplying the last.<br><br><strong>You are compounding. Don't stop now — the most valuable territory is ahead.</strong>`
+  },
+  {
+    trigger: 'world_pass_4',
+    chapter: 'ALL 17 LAWS EARNED', scene: '👑', title: 'Think and Grow Rich — The Formula Revealed',
+    text: `Hill spent 20 years to compile what you just did in one session.<br><br>His final conclusion, after 500 interviews, after studying Carnegie and Ford and Edison and Rockefeller and Lincoln: <em>riches begin with a state of mind. With definiteness of purpose. With little or no hard work."</em><br><br>The formula Hill found: <strong>Desire → Faith → Autosuggestion → Specialized Knowledge → Organized Planning → Decision → Persistence → Mastermind → Transmutation → Subconscious Mind → The Brain → The Sixth Sense.</strong><br><br>You have just built the logical equivalent: Desire to pass → Faith you could learn → Repetition → Specialized knowledge of SL → Organized practice → Decision to finish → Persistence through hard questions → Using this tool as your mastermind.<br><br>Hill's last words in Think and Grow Rich: <em>"Whatever the mind can conceive and believe, it can achieve."</em><br><br><strong>Go walk into that exam and achieve it.</strong>`
+  },
+];
+
+let pendingStory = null;
+function triggerStory(key, onClose) {
+  const s = STORY.find(s => s.trigger === key);
+  if(!s) { if(onClose) onClose(); return; }
+  pendingStory = onClose || null;
+  document.getElementById('storyChapter').textContent = s.chapter;
+  document.getElementById('storyScene').textContent = s.scene;
+  document.getElementById('storyTitle').textContent = s.title;
+  document.getElementById('storyText').innerHTML = s.text;
+  document.getElementById('storyOverlay').classList.add('show');
+}
+function closeStory() {
+  document.getElementById('storyOverlay').classList.remove('show');
+  if(pendingStory) { const cb = pendingStory; pendingStory = null; cb(); }
+}
+
+// ═══════════════════════════════════════════
+// GUESS TRACKING
+// ═══════════════════════════════════════════
+// Extends state with guess data
+state.guesses = { knew: 0, lucky: 0, luckyTopics: [] };
+state.lastQTopic = '';
+
+function showGuessBar() {
+  const gb = document.getElementById('guessBar');
+  gb.style.display = 'flex';
+  gb.querySelectorAll('.guess-btn').forEach(b => b.classList.remove('active'));
+}
+function hideGuessBar() {
+  document.getElementById('guessBar').style.display = 'none';
+}
+function markGuess(type) {
+  const gb = document.getElementById('guessBar');
+  gb.querySelectorAll('.guess-btn').forEach(b => b.classList.remove('active'));
+  gb.querySelector('.guess-btn.' + type).classList.add('active');
+  if(type === 'lucky') {
+    state.guesses.lucky++;
+    const q = state.questions[state.currentQ - 1] || state.questions[state.currentQ];
+    state.guesses.luckyTopics.push(worlds[state.currentWorld].title);
+    // Gently flag it in feedback
+    const fb = document.getElementById('feedback');
+    const flag = document.createElement('div');
+    flag.style.cssText = 'margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--gold);';
+    flag.textContent = '🎲 Marked as lucky — this topic is flagged for extra review in your report.';
+    fb.appendChild(flag);
+  } else {
+    state.guesses.knew++;
+  }
+}
+
+// ═══════════════════════════════════════════
+// NAPOLEON HILL MID-LESSON INTERRUPT
+// ═══════════════════════════════════════════
+function showHillLesson(lesson) {
+  clearInterval(state.timer);
+  const correct = state.correct;
+  const attempted = state.currentQ;
+  const pct = attempted > 0 ? Math.round((correct / attempted) * 100) : 0;
+  const wrongCount = attempted - correct;
+
+  // Performance-aware message
+  let perfMsg = '';
+  if(pct === 100) perfMsg = `<em>Hill would say: you have the mind of a Carnegie right now. Flawless.</em>`;
+  else if(pct >= 80) perfMsg = `Hill observed that the top 2% of performers make fewer than 20% errors — you're in that range. <em>Stay consistent.</em>`;
+  else if(pct >= 60) perfMsg = `${wrongCount} wrong answer${wrongCount !== 1 ? 's' : ''}. Hill said every failure carries the seed of an equivalent advantage — <em>what seed are you finding in yours?</em>`;
+  else perfMsg = `Hill studied people who failed repeatedly before succeeding. Edison failed 10,000 times. <em>You're not behind — you're accumulating data.</em>`;
+
+  document.getElementById('hillBox').innerHTML = `
+    <div class="hill-law-tag">NAPOLEON HILL LESSON</div>
+    <div class="hill-figure">${lesson.figure}</div>
+    <div class="hill-figure-name">${lesson.figureName}</div>
+    <div class="hill-title">${lesson.title}</div>
+    <div class="hill-score-box">
+      <div class="hill-stat"><div class="hill-stat-val">${correct}/${attempted}</div><div class="hill-stat-label">CORRECT SO FAR</div></div>
+      <div class="hill-stat"><div class="hill-stat-val">${pct}%</div><div class="hill-stat-label">ACCURACY</div></div>
+      <div class="hill-stat"><div class="hill-stat-val">${state.streak}🔥</div><div class="hill-stat-label">CURRENT STREAK</div></div>
+    </div>
+    <div class="hill-body">${lesson.lesson}<br><br>${perfMsg}</div>
+    <div class="hill-quote">"Whatever the mind can conceive and believe, it can achieve." — Napoleon Hill</div>
+    <button class="hill-continue" onclick="closeHillLesson()">I'm ready. Keep drilling. →</button>`;
+
+  document.getElementById('hillOverlay').classList.add('show');
+}
+
+function closeHillLesson() {
+  document.getElementById('hillOverlay').classList.remove('show');
+  if(state.currentQ >= state.questions.length) { endWorld(); }
+  else { renderQuestion(); }
+}
+
+
+const TEACH_TOPICS = [
+  {
+    id:'connectives', icon:'🔗', name:'The 5 Connectives', desc:'¬ ∧ ∨ → ↔ explained simply',
+    content: `
+      <div class="teach-h1">The 5 Connectives</div>
+      <div class="teach-p">These are the building blocks of every formula in SL. Think of them as the grammar of logic.</div>
+
+      <div class="teach-h2">¬ — Negation (NOT)</div>
+      <div class="teach-p">Flips the truth value. If P is true, ¬P is false. If P is false, ¬P is true.</div>
+      <div class="teach-box">¬P &nbsp;=&nbsp; "It is NOT the case that P"</div>
+      <div class="teach-tip">Two negatives cancel: ¬¬P is just P.</div>
+
+      <div class="teach-h2">∧ — Conjunction (AND)</div>
+      <div class="teach-p">True only when BOTH sides are true. One false side makes the whole thing false.</div>
+      <div class="teach-box">P ∧ Q is false if P=F, Q=T<br>P ∧ Q is false if P=T, Q=F<br>P ∧ Q is false if P=F, Q=F<br>P ∧ Q is TRUE only if P=T, Q=T</div>
+
+      <div class="teach-h2">∨ — Disjunction (OR)</div>
+      <div class="teach-p">True when AT LEAST ONE side is true. Only false when both are false.</div>
+      <div class="teach-box green">P ∨ Q is false ONLY when P=F and Q=F</div>
+      <div class="teach-tip">This is inclusive OR — it includes the case where both are true.</div>
+
+      <div class="teach-h2">→ — Conditional (IF...THEN)</div>
+      <div class="teach-p">The trickiest one. It only fails ONE specific way.</div>
+      <div class="teach-box red">P → Q is FALSE only when P=T and Q=F<br>(true premise, false conclusion)</div>
+      <div class="teach-p">All other combinations are TRUE — including when P is false. A false promise is never broken.</div>
+      <div class="teach-tip">Memory trick: "If I win the lottery, I'll buy you a car." This is only a LIE if you DO win but DON'T buy the car.</div>
+
+      <div class="teach-h2">↔ — Biconditional (IF AND ONLY IF)</div>
+      <div class="teach-p">True when both sides MATCH — both true, or both false.</div>
+      <div class="teach-box">P ↔ Q is true when: P=T,Q=T  OR  P=F,Q=F<br>P ↔ Q is false when: P=T,Q=F  OR  P=F,Q=T</div>
+
+      <div class="teach-h2">Precedence (order of operations)</div>
+      <table class="teach-table"><tr><th>Priority</th><th>Symbol</th><th>Name</th></tr>
+      <tr><td>1 (tightest)</td><td>¬</td><td>Negation</td></tr>
+      <tr><td>2</td><td>∧</td><td>Conjunction</td></tr>
+      <tr><td>3</td><td>∨</td><td>Disjunction</td></tr>
+      <tr><td>4</td><td>→</td><td>Conditional</td></tr>
+      <tr><td>5 (widest)</td><td>↔</td><td>Biconditional</td></tr></table>
+      <div class="teach-tip">P ∨ Q ∧ R means P ∨ (Q ∧ R) — ∧ binds tighter than ∨.</div>`
+  },
+  {
+    id:'sentence_types', icon:'📋', name:'Sentence Types', desc:'Tautology, contradiction, contingent',
+    content: `
+      <div class="teach-h1">Sentence Types</div>
+      <div class="teach-p">Every sentence in SL falls into one of three categories based on what its truth table looks like.</div>
+
+      <div class="teach-h2">Tautology — Always True</div>
+      <div class="teach-box green">Every row of the truth table = T</div>
+      <div class="teach-p">Classic example: <strong>P ∨ ¬P</strong> — "Either P or not P." This can never be false.</div>
+      <div class="teach-tip">Also called "logically true." It's true by logic alone, regardless of facts.</div>
+
+      <div class="teach-h2">Contradiction — Always False</div>
+      <div class="teach-box red">Every row of the truth table = F</div>
+      <div class="teach-p">Classic example: <strong>P ∧ ¬P</strong> — "P and not P." Impossible.</div>
+
+      <div class="teach-h2">Contingent — Sometimes True, Sometimes False</div>
+      <div class="teach-box">Some rows T, some rows F</div>
+      <div class="teach-p">Most normal sentences. Example: <strong>P ∧ Q</strong> — true only when both are true, false otherwise.</div>
+
+      <div class="teach-h2">Two Sentences Together</div>
+      <table class="teach-table">
+        <tr><th>Term</th><th>Meaning</th></tr>
+        <tr><td>Logically Equivalent</td><td>Same truth value on EVERY row (their ↔ is a tautology)</td></tr>
+        <tr><td>Contradictory</td><td>Opposite truth value on EVERY row</td></tr>
+        <tr><td>Consistent</td><td>At least one row where BOTH are true</td></tr>
+        <tr><td>Inconsistent</td><td>No row where both are true simultaneously</td></tr>
+      </table>
+      <div class="teach-tip">P → Q and ¬Q → ¬P are logically equivalent (contrapositive). P → Q and Q → P are NOT (that's the converse).</div>`
+  },
+  {
+    id:'symbolization', icon:'✍️', name:'Symbolization Traps', desc:'"Only if", "unless", necessary/sufficient',
+    content: `
+      <div class="teach-h1">Symbolization Traps</div>
+      <div class="teach-p">These English phrases are the most commonly mistranslated. Memorize them cold.</div>
+
+      <div class="teach-h2">"P only if Q" → P → Q</div>
+      <div class="teach-box">"Only if" introduces the CONSEQUENT (right side)</div>
+      <div class="teach-p">This trips everyone up. "P only if Q" means P can't be true unless Q is also true. So: P → Q.</div>
+      <div class="teach-tip">Test it: "You pass only if you study." = If you pass → you studied. (Pass → Study)</div>
+
+      <div class="teach-h2">"P if Q" → Q → P</div>
+      <div class="teach-box">"If" introduces the ANTECEDENT (left side)</div>
+      <div class="teach-p">"P if Q" means "if Q then P" — Q is the condition for P.</div>
+
+      <div class="teach-h2">"P unless Q" → ¬Q → P  (equivalently: P ∨ Q)</div>
+      <div class="teach-box">"Unless" = "if not"</div>
+      <div class="teach-p">"It rains unless it's sunny" = "If not sunny, then rain."</div>
+
+      <div class="teach-h2">Necessary vs Sufficient</div>
+      <table class="teach-table">
+        <tr><th>Phrase</th><th>Translation</th><th>Example</th></tr>
+        <tr><td>P is sufficient for Q</td><td>P → Q</td><td>Rain is sufficient for wet ground</td></tr>
+        <tr><td>P is necessary for Q</td><td>Q → P</td><td>Oxygen is necessary for fire (fire → oxygen)</td></tr>
+        <tr><td>P is necessary AND sufficient for Q</td><td>P ↔ Q</td><td>IFF</td></tr>
+      </table>
+      <div class="teach-tip">Necessary = you can't have Q without P → Q → P. Sufficient = having P guarantees Q → P → Q.</div>
+
+      <div class="teach-h2">"Neither P nor Q" → ¬P ∧ ¬Q</div>
+      <div class="teach-h2">"Not both P and Q" → ¬(P ∧ Q)  =  ¬P ∨ ¬Q</div>
+      <div class="teach-tip">Note the difference! "Neither" means BOTH are false. "Not both" just means they can't BOTH be true (one can still be true).</div>`
+  },
+  {
+    id:'truth_tables', icon:'📊', name:'Truth Tables', desc:'How to build and read them',
+    content: `
+      <div class="teach-h1">Truth Tables</div>
+      <div class="teach-p">A truth table maps out every possible combination of truth values and shows what the formula evaluates to in each case.</div>
+
+      <div class="teach-h2">Step-by-Step Method</div>
+      <div class="teach-box"><strong>Step 1:</strong> Count sentence letters → rows = 2ⁿ<br><strong>Step 2:</strong> Fill columns with alternating T/F pattern<br><strong>Step 3:</strong> Evaluate inner sub-formulas first<br><strong>Step 4:</strong> Work outward to the main connective</div>
+
+      <div class="teach-h2">Standard Column Pattern</div>
+      <table class="teach-table">
+        <tr><th>P</th><th>Q</th><th>P → Q</th><th>¬P ∨ Q</th></tr>
+        <tr><td>T</td><td>T</td><td>T</td><td>T</td></tr>
+        <tr><td>T</td><td>F</td><td>F</td><td>F</td></tr>
+        <tr><td>F</td><td>T</td><td>T</td><td>T</td></tr>
+        <tr><td>F</td><td>F</td><td>T</td><td>T</td></tr>
+      </table>
+      <div class="teach-tip">P alternates every 4 rows, Q every 2, R every 1. Always start with T at the top.</div>
+
+      <div class="teach-h2">Testing Validity</div>
+      <div class="teach-p">Add columns for each premise AND the conclusion. Look for any row where ALL premises are T but conclusion is F.</div>
+      <div class="teach-box red">Find one such row → INVALID (that row is the counterexample)</div>
+      <div class="teach-box green">No such row exists → VALID</div>
+
+      <div class="teach-h2">Tautology / Contradiction Test</div>
+      <div class="teach-p">Just look at the column under the main connective:</div>
+      <div class="teach-box green">All T → Tautology</div>
+      <div class="teach-box red">All F → Contradiction</div>
+      <div class="teach-box">Mix → Contingent</div>`
+  },
+  {
+    id:'truth_trees', icon:'🌲', name:'Truth Trees', desc:'All decomposition rules + how to read results',
+    content: `
+      <div class="teach-h1">Truth Trees</div>
+      <div class="teach-p">Trees are faster than truth tables for complex formulas. You break sentences down until you hit atomics, checking for contradictions.</div>
+
+      <div class="teach-h2">The Golden Rule</div>
+      <div class="teach-box gold">Always apply NON-BRANCHING rules before BRANCHING rules.</div>
+
+      <div class="teach-h2">Non-Branching Rules (same branch)</div>
+      <table class="teach-table">
+        <tr><th>Formula</th><th>Gives you</th></tr>
+        <tr><td>¬¬P</td><td>P</td></tr>
+        <tr><td>P ∧ Q</td><td>P and Q on same branch</td></tr>
+        <tr><td>¬(P ∨ Q)</td><td>¬P and ¬Q on same branch</td></tr>
+        <tr><td>¬(P → Q)</td><td>P and ¬Q on same branch</td></tr>
+      </table>
+
+      <div class="teach-h2">Branching Rules (splits)</div>
+      <table class="teach-table">
+        <tr><th>Formula</th><th>Left branch</th><th>Right branch</th></tr>
+        <tr><td>P ∨ Q</td><td>P</td><td>Q</td></tr>
+        <tr><td>P → Q</td><td>¬P</td><td>Q</td></tr>
+        <tr><td>¬(P ∧ Q)</td><td>¬P</td><td>¬Q</td></tr>
+        <tr><td>P ↔ Q</td><td>P, Q</td><td>¬P, ¬Q</td></tr>
+        <tr><td>¬(P ↔ Q)</td><td>P, ¬Q</td><td>¬P, Q</td></tr>
+      </table>
+
+      <div class="teach-h2">Closing Branches</div>
+      <div class="teach-box red">A branch CLOSES (✗) when it contains both P and ¬P</div>
+
+      <div class="teach-h2">Reading Results</div>
+      <table class="teach-table">
+        <tr><th>Task</th><th>Put in tree</th><th>All close</th><th>Branch stays open</th></tr>
+        <tr><td>Test validity</td><td>Premises + ¬Conclusion</td><td>VALID ✓</td><td>INVALID — open branch = counterexample</td></tr>
+        <tr><td>Test tautology</td><td>¬(Sentence)</td><td>Tautology ✓</td><td>Not a tautology</td></tr>
+        <tr><td>Test satisfiability</td><td>All sentences</td><td>Unsatisfiable</td><td>Satisfiable — read off values</td></tr>
+      </table>
+      <div class="teach-tip">Reading an open branch: find every atomic sentence and its negation. If P is on the branch but ¬P is not, P = TRUE in your counterexample.</div>`
+  },
+  {
+    id:'arg_forms', icon:'⚔️', name:'Argument Forms', desc:'Valid forms + the two classic fallacies',
+    content: `
+      <div class="teach-h1">Named Argument Forms</div>
+      <div class="teach-p">Recognizing these instantly saves huge time on exams.</div>
+
+      <div class="teach-h2">Valid Forms — Always Valid</div>
+      <table class="teach-table">
+        <tr><th>Name</th><th>Form</th><th>Memory</th></tr>
+        <tr><td>Modus Ponens (MP)</td><td>P→Q, P ∴ Q</td><td>Affirm antecedent → affirm consequent</td></tr>
+        <tr><td>Modus Tollens (MT)</td><td>P→Q, ¬Q ∴ ¬P</td><td>Deny consequent → deny antecedent</td></tr>
+        <tr><td>Hypothetical Syllogism</td><td>P→Q, Q→R ∴ P→R</td><td>Chain the conditionals</td></tr>
+        <tr><td>Disjunctive Syllogism</td><td>P∨Q, ¬P ∴ Q</td><td>Rule one out, the other must hold</td></tr>
+        <tr><td>Simplification</td><td>P∧Q ∴ P</td><td>If both, then each</td></tr>
+        <tr><td>Addition</td><td>P ∴ P∨Q</td><td>True → can OR it with anything</td></tr>
+      </table>
+
+      <div class="teach-h2">The Two Classic Fallacies — INVALID</div>
+      <div class="teach-box red">Affirming the Consequent: P→Q, Q ∴ P ❌<br>Counterexample: R=F, W=T makes If rain→wet, wet ∴ rain fail</div>
+      <div class="teach-box red">Denying the Antecedent: P→Q, ¬P ∴ ¬Q ❌<br>Q can be true for OTHER reasons besides P</div>
+      <div class="teach-tip">Quick check: if you see Q as a premise with P→Q, and the conclusion is P — that's Affirming the Consequent. INVALID.</div>
+
+      <div class="teach-h2">De Morgan's Laws — MUST memorize</div>
+      <div class="teach-box green">¬(P ∧ Q) ≡ ¬P ∨ ¬Q<br>¬(P ∨ Q) ≡ ¬P ∧ ¬Q</div>
+      <div class="teach-tip">Push negation inside and flip the connective: ∧ becomes ∨, ∨ becomes ∧.</div>`
+  },
+];
+
+function renderTeachTopics() {
+  const grid = document.getElementById('teachTopicGrid');
+  grid.innerHTML = TEACH_TOPICS.map(t => `
+    <div class="teach-topic-btn" onclick="showLesson('${t.id}')">
+      <div class="teach-topic-icon">${t.icon}</div>
+      <div class="teach-topic-name">${t.name}</div>
+      <div class="teach-topic-desc">${t.desc}</div>
+    </div>`).join('');
+}
+
+function showLesson(id) {
+  const topic = TEACH_TOPICS.find(t => t.id === id);
+  if(!topic) return;
+  const lesson = document.getElementById('teachLesson');
+  const topics = document.getElementById('teachTopics');
+  topics.style.display = 'none';
+  lesson.className = 'teach-lesson active';
+  lesson.innerHTML = `
+    <div class="teach-back" onclick="closeLesson()">← All Topics</div>
+    ${topic.content}
+    <div style="margin-top:32px;padding-top:20px;border-top:1px solid var(--border);">
+      <button class="teach-home-btn" onclick="goHome()">← Back to Quest</button>
+    </div>`;
+}
+
+function closeLesson() {
+  document.getElementById('teachLesson').className = 'teach-lesson';
+  document.getElementById('teachTopics').style.display = 'block';
+}
+
+// ═══════════════════════════════════════════
+// LYRA — AI TEACHER
+// ═══════════════════════════════════════════
+let lyraOpen = false;
+let lyraHistory = []; // {role, content}
+let lyraTyping = false;
+
+const LYRA_SYSTEM = `You are Lyra, an AI logic teacher inside a study game called Logic Quest for Phil 2170B (Symbolic Logic, university level). The game's storyline is built around Napoleon Hill's "Think and Grow Rich" and his 17 Laws of Success. The student is on a journey to master logic — framed through Hill's principles, the stories of Carnegie, Ford, Edison, Rockefeller, and other figures Hill studied.
+
+YOUR PERSONALITY:
+- Warm, direct, and motivating — like a mentor who believes in the student completely
+- You weave Napoleon Hill principles, quotes, and stories naturally into logic explanations
+- You reference real figures Hill studied: Andrew Carnegie, Henry Ford, Thomas Edison, John D. Rockefeller, Charles Schwab, R.U. Darby, Edwin Barnes
+- You are never condescending — you treat the student as someone who is capable of mastery
+- You celebrate correct reasoning with genuine enthusiasm, occasionally framing it in Hill's language
+- You use phrases like "That's the kind of definiteness Carnegie demanded", "Hill called this persistence — and you just demonstrated it", "Edison would call that a successful elimination"
+
+YOUR TEACHING APPROACH — connect EVERY logic concept to a Hill principle or story:
+- Tautology = always true = Hill's Law of Burning Desire: unconditional, always on
+- Contradiction = always false = the mindset of someone who says "I want wealth BUT I'm not willing to change"
+- Conditional → = Hill's Mastermind: IF you align with the right people THEN success follows
+- Validity = soundness of a plan: if your premises (beliefs, actions) are true and the argument is valid, the conclusion (success) is guaranteed
+- Truth trees = Edison's method: systematically eliminate what's false until only truth remains
+- Counterexample = the one flaw in a business plan that kills it: find it before your investors do
+- De Morgan's Laws = the mental flip: ¬(Work hard ∧ Smart) = ¬Work hard ∨ ¬Smart — if you're not doing both, you're missing at least one
+
+NAPOLEON HILL'S 17 LAWS (reference these naturally):
+1. Definiteness of Purpose, 2. Mastermind Alliance, 3. Applied Faith, 4. Going the Extra Mile, 5. Pleasing Personality, 6. Personal Initiative, 7. Positive Mental Attitude, 8. Enthusiasm, 9. Self-Discipline, 10. Accurate Thinking, 11. Controlled Attention, 12. Teamwork, 13. Learning from Adversity, 14. Creative Vision, 15. Sound Health, 16. Budgeting Time and Money, 17. Cosmic Habit Force
+
+KEY FIGURES AND THEIR HILL CONNECTIONS (use these in examples):
+- Andrew Carnegie: Definiteness of Purpose, Mastermind Alliance (commissioned Hill)
+- Henry Ford: Applied Faith (the V8 engine story), persistence against "experts"
+- Thomas Edison: Accurate Thinking, learning from adversity (10,000 attempts)
+- John D. Rockefeller: Specialized Knowledge, compound growth, budgeting
+- Charles Schwab: Going the Extra Mile, pleasing personality
+- R.U. Darby: Persistence (Three Feet From Gold story)
+- Edwin Barnes: Definiteness of Purpose (showed up at Edison's door with nothing but desire)
+
+COURSE CONTENT (Phil 2170B — always the primary focus):
+- The 5 connectives: ¬ ∧ ∨ → ↔ and their truth conditions
+- Sentence types: tautology, contradiction, contingent
+- Logical relationships: equivalent, consistent, inconsistent, contradictory  
+- Symbolization: "only if", "unless", "necessary", "sufficient", "neither...nor", "not both"
+- Truth tables: construction, testing validity, finding counterexamples
+- Truth trees: all decomposition rules (branching and non-branching), closing branches, reading open branches
+- Argument forms: Modus Ponens, Modus Tollens, Hypothetical Syllogism, Disjunctive Syllogism, Affirming the Consequent (fallacy), Denying the Antecedent (fallacy)
+- De Morgan's Laws, contrapositive equivalences
+- Validity, soundness, satisfiability, entailment
+- Exam structure: True/False (5 questions), give-an-example (2 questions), symbolization (4 questions), truth table method (1 question), truth tree method (2 questions)
+
+RESPONSE STYLE:
+- Lead with the logic explanation — always clear and accurate first
+- Then weave in the Hill connection naturally (1-2 sentences max per response unless they ask for more)
+- Keep responses focused: 3-8 sentences for most questions
+- For complex proofs or tree walkthroughs, go step by step
+- End with a challenge or next step when relevant
+- If student is frustrated, acknowledge it and invoke Hill's adversity principle
+
+IMPORTANT: The Hill references should feel inspiring and natural, NOT forced. The logic teaching comes first. You're here to get this student an A+ on their exam AND leave them fired up about their own potential.`;
+
+
+function toggleLyra() {
+  lyraOpen = !lyraOpen;
+  const panel = document.getElementById('lyraPanel');
+  panel.classList.toggle('open', lyraOpen);
+  if(lyraOpen && lyraHistory.length === 0) {
+    lyraGreet();
+  }
+  if(lyraOpen) {
+    setTimeout(() => document.getElementById('lyraInput').focus(), 100);
+  }
+}
+
+function lyraGreet() {
+  // Context-aware greeting based on current screen
+  const screen = document.querySelector('.screen.active')?.id || 'home';
+  let greeting = '';
+  let quickPrompts = [];
+
+  if(screen === 'home') {
+    greeting = `Hill said: <em>"The starting point of all achievement is DESIRE."</em> You're here — that's the desire. I'm <strong>Lyra</strong>, your logic mentor.<br><br>Ask me anything about symbolic logic, Napoleon Hill, or how the two connect. I'll teach you through both.`;
+    quickPrompts = ['Explain the conditional →','What is a tautology?','Tell me the 3 Feet From Gold story','How do truth trees work?'];
+  } else if(screen === 'game') {
+    const world = worlds[state.currentWorld];
+    greeting = `You're in <strong>${world.title}</strong> — ${world.hillLaw}.<br><br>Stuck on a question? Describe it and I'll walk you through it. Or ask about the Hill law behind this world.`;
+    quickPrompts = [`Tell me about ${world.hillFigure || 'this Hill law'}`, 'Explain the last question','Walk me through a harder example','How does this show up on the exam?'];
+  } else if(screen === 'teach') {
+    greeting = `Hill called this <em>Specialized Knowledge</em> — going deeper than everyone else. Smart move opening the Study Room.<br><br>Ask me to walk through a concept, give worked examples, or connect logic to a Hill principle.`;
+    quickPrompts = ['Walk me through a truth tree','Explain De Morgans Laws','Necessary vs sufficient conditions','Tell me about Carnegie and logic'];
+  } else {
+    greeting = `<em>"Whatever the mind can conceive and believe, it can achieve."</em> — Napoleon Hill<br><br>Ask me anything about symbolic logic or Hill's laws.`;
+    quickPrompts = ['Explain truth trees','Symbolization help','Tell me about Edison','What is validity?'];
+  }
+
+  lyraAddMsg('lyra', greeting);
+  lyraSetQuick(quickPrompts);
+}
+
+function lyraSetQuick(prompts) {
+  const qc = document.getElementById('lyraQuick');
+  qc.innerHTML = prompts.map(p =>
+    `<button class="lyra-q-btn" onclick="lyraQuickSend('${p}')">${p}</button>`
+  ).join('');
+}
+
+function lyraQuickSend(text) {
+  document.getElementById('lyraInput').value = text;
+  lyraSend();
+}
+
+function lyraKeydown(e) {
+  if(e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    lyraSend();
+  }
+}
+
+function lyraSend() {
+  const input = document.getElementById('lyraInput');
+  const text = input.value.trim();
+  if(!text || lyraTyping) return;
+  input.value = '';
+
+  // Add context about current question if in game
+  let contextNote = '';
+  if(document.querySelector('.screen.active')?.id === 'game' && state.questions && state.questions[state.currentQ]) {
+    const q = state.questions[state.currentQ];
+    contextNote = `\n\n[CONTEXT: Student is currently on World ${state.currentWorld+1} (${worlds[state.currentWorld].title}), Question ${state.currentQ+1}: "${q.text}" — options: ${q.options?.join(' / ')}]`;
+  }
+
+  lyraAddMsg('user', text);
+  lyraHistory.push({ role: 'user', content: text + contextNote });
+  lyraSetQuick([]); // clear quick buttons while responding
+  lyraShowTyping();
+
+  // Call Claude API
+  const messages = lyraHistory.map(m => ({ role: m.role, content: m.content }));
+
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: LYRA_SYSTEM,
+      messages: messages
+    })
+  })
+  .then(r => r.json())
+  .then(data => {
+    lyraHideTyping();
+    const reply = data.content?.[0]?.text || "The Archive's signal is weak... try again in a moment.";
+    lyraHistory.push({ role: 'assistant', content: reply });
+    // Format: bold, line breaks
+    const formatted = reply
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/`(.*?)`/g, '<code>$1</code>')
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n/g, '<br>');
+    lyraAddMsg('lyra', formatted);
+    // Suggest follow-ups based on content
+    lyraSetQuick(['Tell me more','Give me an example','Quiz me on this','How does this appear on the exam?']);
+  })
+  .catch(() => {
+    lyraHideTyping();
+    lyraAddMsg('lyra', "The Archive's connection flickered. Check your internet and try again, Logician.");
+  });
+}
+
+function lyraAddMsg(role, html) {
+  const msgs = document.getElementById('lyraMsgs');
+  const div = document.createElement('div');
+  div.className = `lyra-msg ${role}`;
+  div.innerHTML = role === 'lyra'
+    ? `<div class="lyra-mini-avatar">🔮</div><div class="lyra-msg-bubble">${html}</div>`
+    : `<div class="lyra-user-mini">🧑‍💻</div><div class="lyra-msg-bubble">${html}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function lyraShowTyping() {
+  lyraTyping = true;
+  const msgs = document.getElementById('lyraMsgs');
+  const div = document.createElement('div');
+  div.className = 'lyra-msg lyra';
+  div.id = 'lyraTypingIndicator';
+  div.innerHTML = `<div class="lyra-mini-avatar">🔮</div><div class="lyra-msg-bubble"><div class="lyra-typing"><div class="lyra-dot"></div><div class="lyra-dot"></div><div class="lyra-dot"></div></div></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function lyraHideTyping() {
+  lyraTyping = false;
+  const el = document.getElementById('lyraTypingIndicator');
+  if(el) el.remove();
+}
+
+// Called after a wrong answer — offer Lyra proactively
+function lyraOfferHelp(q) {
+  const fab = document.getElementById('lyraFab');
+  fab.style.animation = 'none';
+  fab.querySelector('.lyra-avatar').style.boxShadow = '0 0 32px rgba(239,68,68,0.6)';
+  setTimeout(() => {
+    fab.querySelector('.lyra-avatar').style.boxShadow = '0 0 24px rgba(168,85,247,0.5)';
+  }, 2000);
+  window._lyraLastWrongQ = q;
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+renderTeachTopics();
+renderHome();
+</script>
+</body>
+</html>
